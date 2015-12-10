@@ -12,4 +12,4 @@ In additional to the default `npm install`, one needs to do some custom setup
 1. `grunt dev` to get started
 
 
-After the last step [http://localhost:9002/](http://localhost:9002/) should open in a browser, where you can run tests, see styleguide and examples etc.
+After the last step [http://localhost:9002/](http://localhost:9002/) should open in a browser, where you can run tests, see styleguide and examples etc
