@@ -1,12 +1,10 @@
-var _ = cdb._;
-var Model = cdb.core.Model;
-var View = cdb.core.View;
-var WidgetModel = require('app/widgets/widget_model');
-var WidgetView = require('app/widgets/widget-view');
+var _ = require('underscore')
+var cdb = require('cartodb.js')
+var WidgetModel = require('app/widgets/widget-model')
+var WidgetView = require('app/widgets/widget-view')
 
-describe('geo/ui/widgets/widget-view', function() {
-
-  beforeEach(function() {
+describe('geo/ui/widgets/widget-view', function () {
+  beforeEach(function () {
     this.model = new WidgetModel({
       id: 'widget_1',
       options: {
@@ -14,17 +12,16 @@ describe('geo/ui/widgets/widget-view', function() {
         columns: ['cartodb_id', 'description']
       }
     }, {
-      layer: new Model()
-    });
+      layer: new cdb.core.Model()
+    })
     this.view = new WidgetView({
       model: this.model,
-      contentView: new View()
-    });
-    this.view.render();
-  });
+      contentView: new cdb.core.View()
+    })
+    this.view.render()
+  })
 
-  it('should have 3 subviews, content, loader and error panes', function() {
-    expect(_.size(this.view._subviews)).toBe(3);
-  });
-
-});
+  it('should have 3 subviews, content, loader and error panes', function () {
+    expect(_.size(this.view._subviews)).toBe(3)
+  })
+})
