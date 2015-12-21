@@ -194,8 +194,8 @@
                               "position": 3
                             }
                           ],
-                          "template_name": "tooltip_light",
-                          "template": "<div class=\"cartodb-tooltip-content-wrapper\">\n  <div class=\"cartodb-tooltip-content\">\n  {{#fields}}\n    {{#title}}\n    <h4>{{title}}</h4>\n    {{/title}}\n    <p>{{{ value }}}</p>\n  {{/fields}}\n  </div>\n</div>",
+                          "template_name": "CDB-Tooltip--isLight",
+                          "template": "<ul class=\"CDB-Tooltip-List\">\n {{#fields}}\n <li class=\"CDB-Tooltip-ListItem\">\n {{#title}}\n <h4 class=\"CDB-Tooltip-ListTitle\">\n{{title}}</h4>\n {{/title}}\n <p class=\"CDB-Tooltip-ListText\">\n{{{ value }}}</p>\n </li>\n {{/fields}}\n  </ul>",
                           "alternative_names": {},
                           "maxHeight": 180
                         },
