@@ -178,6 +178,7 @@
                           "width": 226,
                           "maxHeight": 180
                         },
+                        "fullscreen": true,
                         "tooltip": {
                           "fields": [
                             {
@@ -242,22 +243,13 @@
                 },
                 "infowindow": null,
                 "tooltip": null,
+                "fullscreen": true,
                 "id": "2045d4f7-7a76-4b41-8acf-88e32ac49370",
                 "order": 4,
                 "type": "tiled"
               }
             ],
             "overlays": [
-              {
-                "type": "share",
-                "order": 2,
-                "options": {
-                  "display": true,
-                  "x": 20,
-                  "y": 20
-                },
-                "template": ""
-              },
               {
                 "type": "search",
                 "order": 3,
@@ -267,6 +259,16 @@
                   "y": 20
                 },
                 "template": ""
+              },
+              {
+                "type": "fullscreen",
+                "order": 4,
+                "options": {
+                  "display": true,
+                  "x": 60,
+                  "y": 20
+                },
+                "template": "<button class=\"CDB-FullScreen-Arrow CDB-FullScreen-Arrow--top\"></button><button class=\"CDB-FullScreen-Arrow CDB-FullScreen-Arrow--bottom\"></button>"
               },
               {
                 "type": "zoom",
@@ -299,7 +301,8 @@
 
         var visOpts = {
           no_cdn: false,
-          cartodb_logo: false
+          cartodb_logo: false, 
+          fullscreen: true
         };
         cartodb.deepInsights.createDashboard('#dashboard', diJSON, visOpts)
           .vis.done(function(vis, layers) {
