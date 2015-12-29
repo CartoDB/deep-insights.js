@@ -2,21 +2,19 @@ var DataviewModelBase = require('./dataview-model-base');
 
 module.exports = DataviewModelBase.extend({
 
-  toJSON: function () {
+  toJSON: function (d) {
     return {
-      type: 'aggregation',
+      type: 'formula',
       options: {
         column: this.get('column'),
-        aggregation: this.get('aggregation'),
-        aggregationColumn: this.get('aggregationColumn')
+        operation: this.get('operation')
       }
     };
   },
 
   _paramsForDataQueryFromOptions: function (options) {
     return {
-      bbox: options.boundingBox,
-      own_filter: options.ownFilter
+      bbox: options.boundingBox
     };
   }
 });

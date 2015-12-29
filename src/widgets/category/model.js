@@ -365,20 +365,5 @@ module.exports = WidgetModel.extend({
       this.applyCategoryColors();
     }
     return attrs;
-  },
-
-  // Backbone toJson function override
-
-  // TODO: Remove this
-  toJSON: function () {
-    return {
-      type: 'aggregation',
-      options: {
-        column: this.get('column'),
-        aggregation: this.get('aggregation'),
-        aggregationColumn: this.get('aggregationColumn')
-      }
-    };
   }
-
 });
