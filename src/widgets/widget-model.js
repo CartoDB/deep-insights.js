@@ -58,6 +58,10 @@ module.exports = cdb.core.Model.extend({
     }));
   },
 
+  parse: function () {
+    throw new Error('subclasses of widget-model must implement parse');
+  },
+
   // TODO: Remove this alias and all references to _fetch
   _fetch: function () {
     this._fetchDataFromDataview();
@@ -68,7 +72,7 @@ module.exports = cdb.core.Model.extend({
   },
 
   _onChangeBinds: function () {
-    this.dataview.once('dataChanged', function () {
+    this.dataview.bind('dataChanged', function () {
       if (this.get('sync') && !this.isCollapsed()) {
         this._fetchDataFromDataview();
       }

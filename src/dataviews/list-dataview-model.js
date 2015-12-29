@@ -4,10 +4,9 @@ module.exports = DataviewModelBase.extend({
 
   toJSON: function () {
     return {
-      type: 'formula',
+      type: 'list',
       options: {
-        column: this.get('column'),
-        operation: this.get('operation')
+        columns: this.get('columns')
       }
     };
   },

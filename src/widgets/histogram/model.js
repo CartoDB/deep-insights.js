@@ -4,6 +4,18 @@ var WidgetModel = require('../widget-model');
 
 module.exports = WidgetModel.extend({
 
+  initialize: function (attrs, opts) {
+    WidgetModel.prototype.initialize.apply(this, arguments);
+    this._data = new Backbone.Collection(this.get('data'));
+
+    // BBox should only be included until after the first fetch, since we want to get the range of the full dataset
+    this.once('change:data', function () {
+      this.set('submitBBox', true);
+    }, this);
+
+    this.layer.bind('change:meta', this._onChangeLayerMeta, this);
+  },
+
   _optionsForDataviewQuery: function () {
     var options = {};
     if (this.get('columnType')) {
@@ -26,18 +38,6 @@ module.exports = WidgetModel.extend({
     }
 
     return options;
-  },
-
-  initialize: function (attrs, opts) {
-    WidgetModel.prototype.initialize.apply(this, arguments);
-    this._data = new Backbone.Collection(this.get('data'));
-
-    // BBox should only be included until after the first fetch, since we want to get the range of the full dataset
-    this.once('change:data', function () {
-      this.set('submitBBox', true);
-    }, this);
-
-    this.layer.bind('change:meta', this._onChangeLayerMeta, this);
   },
 
   getData: function () {

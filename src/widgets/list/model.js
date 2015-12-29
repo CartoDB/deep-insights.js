@@ -12,6 +12,12 @@ module.exports = WidgetModel.extend({
     WidgetModel.prototype.initialize.call(this, attrs, opts);
   },
 
+  _optionsForDataviewQuery: function () {
+    return {
+      boundingBox: this.get('boundingBox')
+    };
+  },
+
   getData: function () {
     return this._data;
   },
@@ -25,15 +31,6 @@ module.exports = WidgetModel.extend({
     this._data.reset(rows);
     return {
       data: rows
-    };
-  },
-
-  toJSON: function () {
-    return {
-      type: 'list',
-      options: {
-        columns: this.get('columns')
-      }
     };
   }
 });

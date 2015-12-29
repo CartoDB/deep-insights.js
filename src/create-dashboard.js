@@ -19,6 +19,7 @@ var WindshaftPublicDashboardConfig = require('./windshaft/public-dashboard-confi
 var CategoryDataview = require('./dataviews/category-dataview-model');
 var FormulaDataview = require('./dataviews/formula-dataview-model');
 var HistogramDataview = require('./dataviews/histogram-dataview-model');
+var ListDataview = require('./dataviews/list-dataview-model');
 
 module.exports = function (selector, diJSON, visOpts) {
 
@@ -26,6 +27,14 @@ module.exports = function (selector, diJSON, visOpts) {
 
   var widgetModelFactory = new WidgetModelFactory({
     list: function (attrs, opts) {
+      var dataview = new ListDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        columns: attrs.columns
+      });
+      opts.dataview = dataview;
+      dataviewsCollection.add(dataview);
       return new ListModel(attrs, opts);
     },
     formula: function (attrs, opts) {

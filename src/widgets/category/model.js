@@ -19,13 +19,6 @@ var LockedCatsCollection = require('./models/locked-categories-collection');
 
 module.exports = WidgetModel.extend({
 
-  _optionsForDataviewQuery: function () {
-    return {
-      boundingBox: this.get('boundingBox'),
-      ownFilter: (this.get('locked') ? 1 : 0)
-    };
-  },
-
   initialize: function (attrs, opts) {
     this._data = new CategoriesCollection();
 
@@ -44,6 +37,13 @@ module.exports = WidgetModel.extend({
     this.search = new WidgetSearchModel({}, {
       locked: this.locked
     });
+  },
+
+  _optionsForDataviewQuery: function () {
+    return {
+      boundingBox: this.get('boundingBox'),
+      ownFilter: (this.get('locked') ? 1 : 0)
+    };
   },
 
   // Set any needed parameter when they have changed in this model
