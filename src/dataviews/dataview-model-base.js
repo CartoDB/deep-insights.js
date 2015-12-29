@@ -5,10 +5,6 @@ module.exports = cdb.core.Model.extend({
 
   BOUNDING_BOX_FILTER_WAIT: 500,
 
-  url: function () {
-    throw new Error('use getData to extract data from a dataview');
-  },
-
   initialize: function () {
     this.bind('change:url', function () {
       this.trigger('dataChanged');
@@ -32,14 +28,14 @@ module.exports = cdb.core.Model.extend({
   },
 
   _setURL: function (options) {
-    var params = this._paramsForDataQueryFromOptions(options);
+    var paramsObject = this._paramsForDataQueryFromOptions(options);
     var queryString = '';
-    var wadus = [];
-    for (var key in params) {
-      var value = params[key];
-      wadus.push([key, value].join('='));
+    var params = [];
+    for (var key in paramsObject) {
+      var value = paramsObject[key];
+      params.push([key, value].join('='));
     }
-    queryString = wadus.join('&');
+    queryString = params.join('&');
 
     this.url = this.get('url') + '?' + queryString;
   },

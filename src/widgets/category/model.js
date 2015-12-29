@@ -19,10 +19,6 @@ var LockedCatsCollection = require('./models/locked-categories-collection');
 
 module.exports = WidgetModel.extend({
 
-  url: function () {
-    return this.get('url') + '?bbox=' + this.get('boundingBox') + '&own_filter=' + (this.get('locked') ? 1 : 0);
-  },
-
   _optionsForDataviewQuery: function () {
     return {
       boundingBox: this.get('boundingBox'),

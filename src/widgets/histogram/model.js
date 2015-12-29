@@ -3,33 +3,29 @@ var Backbone = require('backbone');
 var WidgetModel = require('../widget-model');
 
 module.exports = WidgetModel.extend({
-  url: function () {
-    var params = [];
 
+  _optionsForDataviewQuery: function () {
+    var options = {};
     if (this.get('columnType')) {
-      params.push('column_type=' + this.get('columnType'));
+      options.columnType = this.get('columnType');
     }
     if (_.isNumber(this.get('start'))) {
-      params.push('start=' + this.get('start'));
+      options.start = this.get('start');
     }
     if (_.isNumber(this.get('end'))) {
-      params.push('end=' + this.get('end'));
+      options.end = this.get('end');
     }
     if (_.isNumber(this.get('bins'))) {
-      params.push('bins=' + this.get('bins'));
+      options.bins = this.get('bins');
     }
     if (_.isNumber(this.get('own_filter'))) {
-      params.push('own_filter=' + this.get('own_filter'));
+      options.ownFilter = this.get('own_filter');
     }
     if (this.get('boundingBox') && this.get('submitBBox')) {
-      params.push('bbox=' + this.get('boundingBox'));
+      options.boundingBox = this.get('boundingBox');
     }
 
-    var url = this.get('url');
-    if (params.length > 0) {
-      url += '?' + params.join('&');
-    }
-    return url;
+    return options;
   },
 
   initialize: function (attrs, opts) {
@@ -89,16 +85,6 @@ module.exports = WidgetModel.extend({
     this._data.reset(bins, options);
     this.set('data', { bins: bins }, options);
     return this;
-  },
-
-  toJSON: function (d) {
-    return {
-      type: 'histogram',
-      options: {
-        column: this.get('column'),
-        bins: this.get('bins')
-      }
-    };
   },
 
   _onChangeLayerMeta: function () {

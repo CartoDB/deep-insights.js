@@ -18,6 +18,7 @@ var WindshaftPublicDashboardConfig = require('./windshaft/public-dashboard-confi
 
 var CategoryDataview = require('./dataviews/category-dataview-model');
 var FormulaDataview = require('./dataviews/formula-dataview-model');
+var HistogramDataview = require('./dataviews/histogram-dataview-model');
 
 module.exports = function (selector, diJSON, visOpts) {
 
@@ -44,6 +45,15 @@ module.exports = function (selector, diJSON, visOpts) {
         widgetId: attrs.id,
         layerIndex: layerIndex
       });
+      var dataview = new HistogramDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        bins: attrs.bins
+      });
+      opts.dataview = dataview;
+      dataviewsCollection.add(dataview);
       return new HistogramModel(attrs, opts);
     },
     'time-series': function (attrs, opts, layerIndex) {

@@ -58,6 +58,11 @@ module.exports = cdb.core.Model.extend({
     }));
   },
 
+  // TODO: Remove this alias and all references to _fetch
+  _fetch: function () {
+    this._fetchDataFromDataview();
+  },
+
   _optionsForDataviewQuery: function () {
     throw new Error('subclasses of widget-model must implement _optionsForDataviewQuery');
   },
@@ -89,7 +94,7 @@ module.exports = cdb.core.Model.extend({
   },
 
   refresh: function () {
-    this._fetch();
+    this._fetchDataFromDataview();
   },
 
   isCollapsed: function () {
