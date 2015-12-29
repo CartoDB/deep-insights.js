@@ -15,15 +15,16 @@ WidgetModelFactory.prototype.addType = function (type, createModel) {
   this.types[type] = createModel;
 };
 
-WidgetModelFactory.prototype.createModel = function (layer, layerIndex, attrs) {
+WidgetModelFactory.prototype.createModel = function (attrs, options) {
   if (!attrs.id) throw new Error('attrs.id is required');
 
   var createModel = this.types[attrs.type];
   if (createModel) {
     var opts = {
-      layer: layer
+      layer: options.layer,
+      dataview: options.dataview
     };
-    return createModel(attrs, opts, layerIndex);
+    return createModel(attrs, opts);
   } else {
     throw new Error('no model found for arguments ' + arguments);
   }

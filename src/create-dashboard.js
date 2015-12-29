@@ -16,53 +16,68 @@ var WindshaftDashboard = require('./windshaft/dashboard');
 var WindshaftPrivateDashboardConfig = require('./windshaft/private-dashboard-config');
 var WindshaftPublicDashboardConfig = require('./windshaft/public-dashboard-config');
 
+var DataviewModelFactory = require('./dataview-model-factory');
 var CategoryDataview = require('./dataviews/category-dataview-model');
 var FormulaDataview = require('./dataviews/formula-dataview-model');
 var HistogramDataview = require('./dataviews/histogram-dataview-model');
 var ListDataview = require('./dataviews/list-dataview-model');
 
 module.exports = function (selector, diJSON, visOpts) {
-
   var dataviewsCollection = new Backbone.Collection();
 
-  var widgetModelFactory = new WidgetModelFactory({
-    list: function (attrs, opts) {
-      var dataview = new ListDataview({
+  var dataviewModelFactory = new DataviewModelFactory({
+    list: function (attrs) {
+      return new ListDataview({
         type: attrs.type,
         id: attrs.id,
         layerId: attrs.layerId,
         columns: attrs.columns
       });
-      opts.dataview = dataview;
-      dataviewsCollection.add(dataview);
-      return new ListModel(attrs, opts);
     },
-    formula: function (attrs, opts) {
-      var dataview = new FormulaDataview({
+    formula: function (attrs) {
+      // TODO once dataviews are moved to cartodb.js, replace with proper API call, something like this I imagine:
+      // return foobar.dataviews.createList(layer, attrs.column, attrs.operation);
+      return new FormulaDataview({
         type: attrs.type,
         id: attrs.id,
         layerId: attrs.layerId,
         column: attrs.column,
         operation: attrs.operation
       });
-      opts.dataview = dataview;
-      dataviewsCollection.add(dataview);
-      return new FormulaModel(attrs, opts);
     },
-    histogram: function (attrs, opts, layerIndex) {
-      opts.filter = new RangeFilter({
-        widgetId: attrs.id,
-        layerIndex: layerIndex
-      });
-      var dataview = new HistogramDataview({
+    histogram: function (attrs) {
+      return new HistogramDataview({
         type: attrs.type,
         id: attrs.id,
         layerId: attrs.layerId,
         column: attrs.column,
         bins: attrs.bins
       });
-      opts.dataview = dataview;
-      dataviewsCollection.add(dataview);
+    },
+    // TODO: Rename type to category instead of aggregation?
+    aggregation: function (attrs) {
+      return new CategoryDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        aggregation: attrs.aggregation
+      });
+    }
+  });
+
+  var widgetModelFactory = new WidgetModelFactory({
+    list: function (attrs, opts) {
+      return new ListModel(attrs, opts);
+    },
+    formula: function (attrs, opts) {
+      return new FormulaModel(attrs, opts);
+    },
+    histogram: function (attrs, opts) {
+      opts.filter = new RangeFilter({
+        widgetId: attrs.id,
+        layerIndex: attrs.layerIndex
+      });
       return new HistogramModel(attrs, opts);
     },
     'time-series': function (attrs, opts, layerIndex) {
@@ -70,7 +85,7 @@ module.exports = function (selector, diJSON, visOpts) {
       attrs.type = 'histogram';
       opts.filter = new RangeFilter({
         widgetId: attrs.id,
-        layerIndex: layerIndex
+        layerIndex: attrs.layerIndex
       });
       var model = new HistogramModel(attrs, opts);
 
@@ -84,15 +99,6 @@ module.exports = function (selector, diJSON, visOpts) {
         widgetId: attrs.id,
         layerIndex: layerIndex
       });
-      var dataview = new CategoryDataview({
-        type: attrs.type,
-        id: attrs.id,
-        layerId: attrs.layerId,
-        column: attrs.column,
-        aggregation: attrs.aggregation
-      });
-      dataviewsCollection.add(dataview);
-      opts.dataview = dataview;
       return new CategoryModel(attrs, opts);
     }
   });
@@ -157,10 +163,19 @@ module.exports = function (selector, diJSON, visOpts) {
 
     if (layer) {
       var layerIndex = interactiveLayers.indexOf(layer);
-      var attrs = _.extend({
-        id: id
+      var widgetAttrs = _.extend({
+        id: id,
+        layerIndex: layerIndex
       }, d);
-      var widgetModel = widgetModelFactory.createModel(layer, layerIndex, attrs);
+
+      var dataview = dataviewModelFactory.createModel(widgetAttrs);
+      dataviewsCollection.add(dataview);
+
+      var widgetOptions = {
+        layer: layer,
+        dataview: dataview
+      };
+      var widgetModel = widgetModelFactory.createModel(widgetAttrs, widgetOptions);
       widgetModels.push(widgetModel);
     } else {
       cdb.log.error('no layer found for widget ' + id + ':' + JSON.stringify(d));
