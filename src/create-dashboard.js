@@ -1,3 +1,4 @@
+var Backbone = require('backbone');
 var _ = require('underscore');
 var cdb = require('cartodb.js');
 var DashboardView = require('./dashboard-view');
@@ -15,7 +16,12 @@ var WindshaftDashboard = require('./windshaft/dashboard');
 var WindshaftPrivateDashboardConfig = require('./windshaft/private-dashboard-config');
 var WindshaftPublicDashboardConfig = require('./windshaft/public-dashboard-config');
 
+var CategoryDataview = require('./dataviews/category-dataview-model');
+
 module.exports = function (selector, diJSON, visOpts) {
+
+  var dataviewsCollection = new Backbone.Collection();
+
   var widgetModelFactory = new WidgetModelFactory({
     list: function (attrs, opts) {
       return new ListModel(attrs, opts);
@@ -49,6 +55,15 @@ module.exports = function (selector, diJSON, visOpts) {
         widgetId: attrs.id,
         layerIndex: layerIndex
       });
+      var dataview = new CategoryDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        aggregation: attrs.aggregation
+      });
+      dataviewsCollection.add(dataview);
+      opts.dataview = dataview;
       return new CategoryModel(attrs, opts);
     }
   });
@@ -144,7 +159,7 @@ module.exports = function (selector, diJSON, visOpts) {
     forceCors: datasource.force_cors
   });
 
-  new WindshaftDashboard({ // eslint-disable-line
+  var dashboard = new WindshaftDashboard({ // eslint-disable-line
     client: windshaftClient,
     configGenerator: configGenerator,
     statTag: datasource.stat_tag,
@@ -152,6 +167,7 @@ module.exports = function (selector, diJSON, visOpts) {
     layerGroup: cartoDBLayerGroup,
     layers: interactiveLayers,
     widgets: widgets,
+    dataviews: dataviewsCollection,
     map: vis.map
   });
 

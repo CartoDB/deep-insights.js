@@ -9,7 +9,9 @@ var WindshaftDashboard = function (options) {
 
   this.layerGroup = options.layerGroup;
   this.layers = new Backbone.Collection(options.layers);
+// TODO: Remove widgets
   this.widgets = options.widgets;
+  this.dataviews = options.dataviews;
   this.map = options.map;
   this.client = options.client;
   this.statTag = options.statTag;
@@ -30,7 +32,8 @@ WindshaftDashboard.prototype._createInstance = function (options) {
 
   var dashboardConfig = this.configGenerator.generate({
     layers: this.layers.models,
-    widgets: this.widgets
+    widgets: this.widgets,
+    dataviews: this.dataviews
   });
 
   var filtersFromVisibleLayers = this.widgets.chain()
@@ -86,6 +89,7 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
   var boundingBox = boundingBoxFilter.toString();
   var layerId = options.layerId;
 
+  // TODO: Remove this
   this.widgets.each(function (widget) {
     var url = this.instance.getWidgetURL({
       widgetId: widget.get('id'),
@@ -108,6 +112,21 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
       'boundingBox': boundingBox
     }, extraAttrs), {
       silent: layerId && layerId !== widget.layer.get('id')
+    });
+  }, this);
+
+  this.dataviews.each(function (dataview) {
+    var url = this.instance.getWidgetURL({
+      widgetId: dataview.get('id'),
+      protocol: 'http'
+    });
+
+    var extraAttrs = {};
+    dataview.set(_.extend({
+      'url': url,
+      'boundingBox': boundingBox
+    }, extraAttrs), {
+      silent: layerId && layerId !== dataview.get('layerId')
     });
   }, this);
 };

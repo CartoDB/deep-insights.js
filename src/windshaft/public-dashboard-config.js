@@ -3,7 +3,7 @@ var WindshaftPublicDashboardConfig = {};
 
 WindshaftPublicDashboardConfig.generate = function (options) {
   var layers = options.layers;
-  var widgets = options.widgets;
+  var dataviews = options.dataviews;
   var config = { layers: [] };
   _.each(layers, function (layer) {
     if (layer.isVisible()) {
@@ -25,9 +25,9 @@ WindshaftPublicDashboardConfig.generate = function (options) {
 
       layerConfig.options.widgets = {};
       var layerId = layer.get('id');
-      widgets.each(function (widget) {
-        if (layerId === widget.layer.get('id')) {
-          layerConfig.options.widgets[widget.get('id')] = widget.toJSON();
+      dataviews.each(function (dataview) {
+        if (layerId === dataview.get('layerId')) {
+          layerConfig.options.widgets[dataview.get('id')] = dataview.toJSON();
         }
       });
       config.layers.push(layerConfig);

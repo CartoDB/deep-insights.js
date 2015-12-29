@@ -18,8 +18,16 @@ var LockedCatsCollection = require('./models/locked-categories-collection');
  */
 
 module.exports = WidgetModel.extend({
+
   url: function () {
     return this.get('url') + '?bbox=' + this.get('boundingBox') + '&own_filter=' + (this.get('locked') ? 1 : 0);
+  },
+
+  _optionsForDataviewQuery: function () {
+    return {
+      boundingBox: this.get('boundingBox'),
+      ownFilter: (this.get('locked') ? 1 : 0)
+    };
   },
 
   initialize: function (attrs, opts) {
@@ -57,25 +65,13 @@ module.exports = WidgetModel.extend({
   _onChangeBinds: function () {
     this._setInternalModels();
 
+    WidgetModel.prototype._onChangeBinds.call(this);
+
     this.rangeModel.bind('change:totalCount change:categoriesCount', function () {
       this.set({
         totalCount: this.rangeModel.get('totalCount'),
         categoriesCount: this.rangeModel.get('categoriesCount')
       });
-    }, this);
-
-    this.bind('change:url', function () {
-      if (this.get('sync') && !this.isCollapsed()) {
-        this._fetch();
-      }
-    }, this);
-
-    this.bind('change:boundingBox', function () {
-      // If a search is applied and bounding bounds has changed,
-      // don't fetch new raw data
-      if (this.get('bbox') && !this.isSearchApplied() && !this.isCollapsed()) {
-        this._fetch();
-      }
     }, this);
 
     this.bind('change:url change:boundingBox', function () {
@@ -88,9 +84,11 @@ module.exports = WidgetModel.extend({
     this.bind('change:collapsed', function (mdl, isCollapsed) {
       if (!isCollapsed) {
         if (mdl.changedAttributes(this._previousAttrs)) {
-          this._fetch();
+          this._fetchDataFromDataview();
         }
       } else {
+        // TODO: We will need to different attributes here once
+        // url and boundingBox will be gone
         this._previousAttrs = {
           url: this.get('url'),
           boundingBox: this.get('boundingBox')
@@ -181,7 +179,7 @@ module.exports = WidgetModel.extend({
 
   lockCategories: function () {
     this.set('locked', true);
-    this._fetch();
+    this._fetchDataFromDataview();
   },
 
   unlockCategories: function () {
@@ -286,7 +284,7 @@ module.exports = WidgetModel.extend({
     if (this.isSearchApplied()) {
       this.search.fetch();
     } else {
-      this._fetch();
+      this._fetchDataFromDataview();
     }
   },
 
@@ -371,6 +369,7 @@ module.exports = WidgetModel.extend({
 
   // Backbone toJson function override
 
+  // TODO: Remove this
   toJSON: function () {
     return {
       type: 'aggregation',

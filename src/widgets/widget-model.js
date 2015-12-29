@@ -1,9 +1,12 @@
+// TODO: Rename to widget-model-base.js
+var _ = require('underscore');
 var cdb = require('cartodb.js');
 
 /**
  * Default widget model
  */
 module.exports = cdb.core.Model.extend({
+
   defaults: {
     url: '',
     data: [],
@@ -22,16 +25,19 @@ module.exports = cdb.core.Model.extend({
 
     this.layer = opts.layer;
     this.filter = opts.filter; // optional/might be undefined
+    this.dataview = opts.dataview;
 
     this._initBinds();
   },
 
   _initBinds: function () {
-    this.once('change:url', function () {
-      var self = this;
-      this._fetch(function () {
-        self._onChangeBinds();
-      });
+    this.dataview.once('dataChanged', function () {
+      this._fetchDataFromDataview();
+      this._onChangeBinds();
+    }, this);
+
+    this.dataview.on('error', function () {
+      this.trigger('error');
     }, this);
 
     // Retrigger an event when the filter changes
@@ -40,22 +46,38 @@ module.exports = cdb.core.Model.extend({
     }
   },
 
+  _fetchDataFromDataview: function () {
+    var dataviewQueryOptions = this._optionsForDataviewQuery();
+    this.dataview.getData(_.extend(dataviewQueryOptions, {
+      success: function (data) {
+        this.set(this.parse(data));
+      }.bind(this),
+      error: function () {
+        this.trigger('error');
+      }.bind(this)
+    }));
+  },
+
+  _optionsForDataviewQuery: function () {
+    throw new Error('subclasses of widget-model must implement _optionsForDataviewQuery');
+  },
+
   _onChangeBinds: function () {
-    this.bind('change:url', function () {
+    this.dataview.once('dataChanged', function () {
       if (this.get('sync') && !this.isCollapsed()) {
-        this._fetch();
+        this._fetchDataFromDataview();
       }
     }, this);
     this.bind('change:boundingBox', function () {
       if (this.get('bbox') && !this.isCollapsed()) {
-        this._fetch();
+        this._fetchDataFromDataview();
       }
     }, this);
 
     this.bind('change:collapsed', function (mdl, isCollapsed) {
       if (!isCollapsed) {
         if (mdl.changedAttributes(this._previousAttrs)) {
-          this._fetch();
+          this._fetchDataFromDataview();
         }
       } else {
         this._previousAttrs = {
@@ -64,16 +86,6 @@ module.exports = cdb.core.Model.extend({
         };
       }
     }, this);
-  },
-
-  _fetch: function (callback) {
-    var self = this;
-    this.fetch({
-      success: callback,
-      error: function () {
-        self.trigger('error');
-      }
-    });
   },
 
   refresh: function () {
