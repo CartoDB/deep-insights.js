@@ -1,3 +1,4 @@
+var Backbone = require('backbone');
 var CategoryModel = require('../../../src/widgets/category/model.js');
 var ViewModel = require('../../../src/widgets/widget-content-model.js');
 var SearchTitleView = require('../../../src/widgets/category/title/search-title-view.js');
@@ -5,8 +6,12 @@ var WindshaftFiltersCategory = require('../../../src/windshaft/filters/category'
 
 describe('widgets/category/search-title-view', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+
     this.model = new CategoryModel(null, {
-      filter: new WindshaftFiltersCategory()
+      filter: new WindshaftFiltersCategory(),
+      dataview: this.dataview
     });
     this.viewModel = new ViewModel();
     this.view = new SearchTitleView({

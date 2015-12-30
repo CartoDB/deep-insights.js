@@ -81,6 +81,7 @@ module.exports = WidgetModel.extend({
   //    - start, end: are the bucket bounds
   //    - min, max: the min and the max value for all the points in that bucket
   //    - freq: count
+  // TODO: Are we using this?
   setBins: function (bins, options) {
     this._data.reset(bins, options);
     this.set('data', { bins: bins }, options);

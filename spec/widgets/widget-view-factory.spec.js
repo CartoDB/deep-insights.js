@@ -1,4 +1,5 @@
 var cdb = require('cartodb.js');
+var Backbone = require('backbone');
 var WidgetViewFactory = require('../../src/widgets/widget-view-factory');
 var WidgetModel = require('../../src/widgets/widget-model');
 var WidgetView = require('../../src/widgets/widget-view');
@@ -52,8 +53,10 @@ describe('widgets/widget-view-factory', function () {
         id: 'layer-uuid',
         type: 'cartodb'
       });
+      this.dataview = new Backbone.Model();
       this.widget = new WidgetModel({}, {
-        layer: this.layer
+        layer: this.layer,
+        dataview: this.dataview
       });
 
       this.matchSpy = jasmine.createSpy('match');

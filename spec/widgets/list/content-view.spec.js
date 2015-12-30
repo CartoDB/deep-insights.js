@@ -1,13 +1,17 @@
+var Backbone = require('backbone');
 var _ = require('underscore');
 var WidgetListModel = require('../../../src/widgets/list/model');
 var WidgetListContent = require('../../../src/widgets/list/content-view');
 
 describe('widgets/list/content-view', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
     this.model = new WidgetListModel({
       id: 'widget_3',
       title: 'Howdy',
       columns: ['cartodb_id', 'title']
+    }, {
+      dataview: this.dataview
     });
     this.view = new WidgetListContent({
       showScroll: true,

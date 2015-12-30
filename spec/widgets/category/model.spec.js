@@ -1,11 +1,16 @@
 var _ = require('underscore');
+var Backbone = require('backbone');
 var CategoryModel = require('../../../src/widgets/category/model.js');
 var WindshaftFiltersCategory = require('../../../src/windshaft/filters/category');
 
 describe('widgets/category/model', function () {
   beforeEach(function () {
+    var dataview = new Backbone.Model();
+    dataview.getData = function () {};
+
     this.model = new CategoryModel(null, {
-      filter: new WindshaftFiltersCategory()
+      filter: new WindshaftFiltersCategory(),
+      dataview: dataview
     });
   });
 
@@ -50,10 +55,10 @@ describe('widgets/category/model', function () {
       });
 
       it('should fetch itself if bounding box changes only when search is not applied', function () {
-        spyOn(this.model, '_fetch');
+        spyOn(this.model, '_fetchDataFromDataview');
         spyOn(this.model, 'isSearchApplied').and.returnValue(true);
         this.model.set('boundingBox', 'comeon');
-        expect(this.model._fetch).not.toHaveBeenCalled();
+        expect(this.model._fetchDataFromDataview).not.toHaveBeenCalled();
       });
     });
 
@@ -170,20 +175,20 @@ describe('widgets/category/model', function () {
 
     describe('locked/unlocked', function () {
       beforeEach(function () {
-        spyOn(this.model, '_fetch');
+        spyOn(this.model, '_fetchDataFromDataview');
         spyOn(this.model, 'acceptAll');
       });
 
       it('should lock widget', function () {
         this.model.lockCategories();
         expect(this.model.get('locked')).toBeTruthy();
-        expect(this.model._fetch).toHaveBeenCalled();
+        expect(this.model._fetchDataFromDataview).toHaveBeenCalled();
       });
 
       it('should unlock widget', function () {
         this.model.unlockCategories();
         expect(this.model.get('locked')).toBeFalsy();
-        expect(this.model._fetch).not.toHaveBeenCalled();
+        expect(this.model._fetchDataFromDataview).not.toHaveBeenCalled();
         expect(this.model.acceptAll).toHaveBeenCalled();
       });
     });
@@ -225,16 +230,16 @@ describe('widgets/category/model', function () {
   });
 
   it('should refresh its own data only if the search is not applied', function () {
-    spyOn(this.model, '_fetch');
+    spyOn(this.model, '_fetchDataFromDataview');
     spyOn(this.model.search, 'fetch');
     this.model.refresh();
-    expect(this.model._fetch.calls.count()).toEqual(1);
-    expect(this.model._fetch).toHaveBeenCalled();
+    expect(this.model._fetchDataFromDataview.calls.count()).toEqual(1);
+    expect(this.model._fetchDataFromDataview).toHaveBeenCalled();
     expect(this.model.search.fetch).not.toHaveBeenCalled();
     spyOn(this.model, 'isSearchApplied').and.returnValue(true);
     this.model.refresh();
     expect(this.model.search.fetch).toHaveBeenCalled();
-    expect(this.model._fetch.calls.count()).toEqual(1);
+    expect(this.model._fetchDataFromDataview.calls.count()).toEqual(1);
   });
 
   describe('parseData', function () {

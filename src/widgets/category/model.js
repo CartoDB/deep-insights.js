@@ -63,6 +63,14 @@ module.exports = WidgetModel.extend({
 
     WidgetModel.prototype._onChangeBinds.call(this);
 
+    this.bind('change:boundingBox', function () {
+      // If a search is applied and bounding bounds has changed,
+      // don't fetch new raw data
+      if (this.get('bbox') && !this.isSearchApplied() && !this.isCollapsed()) {
+        this._fetch();
+      }
+    }, this);
+
     this.rangeModel.bind('change:totalCount change:categoriesCount', function () {
       this.set({
         totalCount: this.rangeModel.get('totalCount'),
@@ -110,6 +118,10 @@ module.exports = WidgetModel.extend({
     this.search.bind('change:data', function () {
       this.trigger('change:searchData', this.search, this);
     }, this);
+  },
+
+  _fetchOnBoundingBoxChanged: function () {
+    return this.get('bbox') && !this.isSearchApplied() && !this.isCollapsed();
   },
 
   /*

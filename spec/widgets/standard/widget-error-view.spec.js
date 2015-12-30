@@ -1,3 +1,4 @@
+var Backbone = require('backbone');
 var WidgetModel = require('../../../src/widgets/widget-model');
 var WidgetErrorView = require('../../../src/widgets/standard/widget-error-view');
 
@@ -5,10 +6,13 @@ describe('widgets/standard/widget-error-view', function () {
   beforeEach(function () {
     jasmine.clock().install();
 
+    this.dataview = new Backbone.Model();
     this.model = new WidgetModel({
       id: 'widget_98334',
       title: 'Helloooo',
       columns: ['cartodb_id', 'title']
+    }, {
+      dataview: this.dataview
     });
 
     spyOn(this.model, 'bind').and.callThrough();
@@ -29,12 +33,12 @@ describe('widgets/standard/widget-error-view', function () {
   });
 
   it('should fetch again the data when refresh button is clicked', function () {
-    spyOn(this.model, 'fetch');
+    spyOn(this.model, '_fetchDataFromDataview');
     this.view.render();
     this.view.show();
     jasmine.clock().tick(400);
     this.view.$('.js-refresh').click();
-    expect(this.model.fetch).toHaveBeenCalled();
+    expect(this.model._fetchDataFromDataview).toHaveBeenCalled();
   });
 
   describe('visibility', function () {

@@ -4,24 +4,23 @@ var WidgetModel = require('../../src/widgets/widget-model');
 var WidgetView = require('../../src/widgets/widget-view');
 
 describe('widgets/widget-view', function () {
-  beforeEach(function () {
-    this.model = new WidgetModel({
+  it('should have 3 subviews, content, loader and error panes', function () {
+    var model = new WidgetModel({
       id: 'widget_1',
       options: {
         title: 'Hello widget',
         columns: ['cartodb_id', 'description']
       }
     }, {
-      layer: new cdb.core.Model()
+      layer: new cdb.core.Model(),
+      dataview: new cdb.core.Model()
     });
-    this.view = new WidgetView({
-      model: this.model,
+    var view = new WidgetView({
+      model: model,
       contentView: new cdb.core.View()
     });
-    this.view.render();
-  });
+    view.render();
 
-  it('should have 3 subviews, content, loader and error panes', function () {
-    expect(_.size(this.view._subviews)).toBe(3);
+    expect(_.size(view._subviews)).toBe(3);
   });
 });

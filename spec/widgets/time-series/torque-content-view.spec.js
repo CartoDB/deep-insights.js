@@ -5,9 +5,15 @@ var TimeContentView = require('../../../src/widgets/time-series/torque-content-v
 
 describe('widgets/time-series/torque-content-view', function () {
   beforeEach(function () {
+    var dataview = new cdb.core.Model();
+    dataview.getData = function (options) {
+      options.success({});
+    };
+
     this.model = new HistogramModel({}, {
-      filter: new cdb.core.Model(),
-      layer: new cdb.core.Model()
+      layer: new cdb.core.Model(),
+      dataview: dataview,
+      filter: new cdb.core.Model()
     });
     this.model.sync = function (method, model, options) {
       this.options = options;

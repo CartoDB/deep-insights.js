@@ -47,6 +47,7 @@ module.exports = cdb.core.Model.extend({
   },
 
   _fetchDataFromDataview: function () {
+    this._hasDataChanged = false;
     var dataviewQueryOptions = this._optionsForDataviewQuery();
     this.dataview.getData(_.extend(dataviewQueryOptions, {
       success: function (data) {
@@ -73,28 +74,30 @@ module.exports = cdb.core.Model.extend({
 
   _onChangeBinds: function () {
     this.dataview.bind('dataChanged', function () {
-      if (this.get('sync') && !this.isCollapsed()) {
+      this._hasDataChanged = true;
+      if (this._fetchOnDataChanged()) {
         this._fetchDataFromDataview();
       }
     }, this);
     this.bind('change:boundingBox', function () {
-      if (this.get('bbox') && !this.isCollapsed()) {
+      if (this._fetchOnBoundingBoxChanged()) {
         this._fetchDataFromDataview();
       }
     }, this);
 
     this.bind('change:collapsed', function (mdl, isCollapsed) {
-      if (!isCollapsed) {
-        if (mdl.changedAttributes(this._previousAttrs)) {
-          this._fetchDataFromDataview();
-        }
-      } else {
-        this._previousAttrs = {
-          url: this.get('url'),
-          boundingBox: this.get('boundingBox')
-        };
+      if (!isCollapsed && this._hasDataChanged) {
+        this._fetchDataFromDataview();
       }
     }, this);
+  },
+
+  _fetchOnDataChanged: function () {
+    return this.get('sync') && !this.isCollapsed();
+  },
+
+  _fetchOnBoundingBoxChanged: function () {
+    return this.get('bbox') && !this.isCollapsed();
   },
 
   refresh: function () {

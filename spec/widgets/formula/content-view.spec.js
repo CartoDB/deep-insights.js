@@ -1,11 +1,17 @@
+var Backbone = require('backbone');
 var WidgetFormulaModel = require('../../../src/widgets/formula/model');
 var WidgetFormulaContent = require('../../../src/widgets/formula/content-view');
 
 describe('widgets/formula/content-view', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+
     this.model = new WidgetFormulaModel({
       id: 'widget_3',
       title: 'Max population'
+    }, {
+      dataview: this.dataview
     });
     this.view = new WidgetFormulaContent({
       model: this.model
