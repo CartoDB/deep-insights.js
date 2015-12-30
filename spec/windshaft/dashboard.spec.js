@@ -215,9 +215,6 @@ describe('windshaft/dashboard', function () {
     // Map bounds changes and event is triggered
     this.map.setBounds([['s', 'w'], ['n', 'e']]);
     this.map.trigger('change:center');
-
-    // widget url has been updated and now includes the bounding box filter
-    expect(widget.url()).toEqual('http://example.com/widgetId?bbox=w,s,e,n');
   });
 
   it('should create a new instance when some attributes of a layer changes', function () {

@@ -23,24 +23,8 @@ describe('widgets/category/model', function () {
 
   describe('binds', function () {
     beforeEach(function () {
-      this.model.set({
-        url: 'http://heytest.io'
-      });
       // Simulating first interaction with client.js
       this.model._onChangeBinds();
-    });
-
-    describe('url', function () {
-      beforeEach(function () {
-        spyOn(this.model, 'fetch');
-        spyOn(this.model.search, 'fetch');
-        spyOn(this.model.rangeModel, 'fetch');
-      });
-
-      it('should set rangeModel url when it changes', function () {
-        expect(this.model.rangeModel.get('url')).toBe('http://heytest.io');
-        expect(this.model.rangeModel.url()).toBe('http://heytest.io');
-      });
     });
 
     describe('boundingBox', function () {
@@ -64,20 +48,6 @@ describe('widgets/category/model', function () {
         _.each(eventNames, function (eventName) {
           _.bind(eventDispatcher, this)(this.model.locked, eventName, 'change:lockCollection');
         }, this);
-      });
-    });
-
-    describe('range model', function () {
-      it('should set totalCount when rangeModel has changed', function () {
-        expect(this.model.get('totalCount')).toBeUndefined();
-        this.model.rangeModel.set({ totalCount: 1000 });
-        expect(this.model.get('totalCount')).toBe(1000);
-      });
-
-      it('should set categoriesCount when rangeModel has changed', function () {
-        expect(this.model.get('categoriesCount')).toBeUndefined();
-        this.model.rangeModel.set({ categoriesCount: 123 });
-        expect(this.model.get('categoriesCount')).toBe(123);
       });
     });
   });
@@ -329,6 +299,20 @@ describe('widgets/category/model', function () {
 
   it('should have defined "_onFilterChanged" method', function () {
     expect(this.model._onFilterChanged).toBeDefined();
+  });
+
+  it('should set the totalCount and categoriesCount attributes after the dataview has been fetched', function () {
+    spyOn(this.dataview, 'getData').and.callFake(function (options) {
+      options.success({
+        count: 10,
+        categoriesCount: 5
+      });
+    });
+
+    this.model._onChangeBinds();
+
+    expect(this.model.get('totalCount')).toEqual(10);
+    expect(this.model.get('categoriesCount')).toEqual(5);
   });
 });
 

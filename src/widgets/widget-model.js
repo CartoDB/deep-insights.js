@@ -7,16 +7,10 @@ var cdb = require('cartodb.js');
  */
 module.exports = cdb.core.Model.extend({
   defaults: {
-    url: '',
     data: [],
-    columns: [],
     sync: true,
     bbox: true,
     collapsed: false
-  },
-
-  url: function () {
-    return this.get('url') + '?bbox=' + this.get('boundingBox');
   },
 
   initialize: function (attrs, opts) {
@@ -121,11 +115,6 @@ module.exports = cdb.core.Model.extend({
 
   getPreviousData: function () {
     return this.previous('data');
-  },
-
-  fetch: function (opts) {
-    this.trigger('loading', this);
-    return cdb.core.Model.prototype.fetch.call(this, opts);
   },
 
   toJSON: function () {

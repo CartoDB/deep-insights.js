@@ -27,7 +27,9 @@ module.exports = WidgetModel.extend({
     this.locked = new LockedCatsCollection();
 
     // Internal model for calculating total amount of values in the category
-    this.rangeModel = new CategoryModelRange();
+    this.rangeModel = new CategoryModelRange({}, {
+      dataview: this.dataview
+    });
 
     // Colors class
     this.colors = new CategoryColors();
@@ -48,13 +50,9 @@ module.exports = WidgetModel.extend({
 
   // Set any needed parameter when they have changed in this model
   _setInternalModels: function () {
-    var url = this.get('url');
-
     this.search.set({
       boundingBox: this.get('boundingBox')
     });
-
-    this.rangeModel.setUrl(url);
   },
 
   _onChangeBinds: function () {
@@ -70,12 +68,14 @@ module.exports = WidgetModel.extend({
       }
     }, this);
 
-    this.rangeModel.bind('change:totalCount change:categoriesCount', function () {
-      this.set({
-        totalCount: this.rangeModel.get('totalCount'),
-        categoriesCount: this.rangeModel.get('categoriesCount')
-      });
-    }, this);
+    this.rangeModel.getCategoriesCount({
+      success: function (response) {
+        this.set({
+          totalCount: response.totalCount,
+          categoriesCount: response.categoriesCount
+        });
+      }.bind(this)
+    });
 
     this.bind('change:boundingBox', function () {
       this.search.set({

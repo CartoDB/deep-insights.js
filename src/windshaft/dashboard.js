@@ -88,13 +88,8 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
   var boundingBox = boundingBoxFilter.toString();
   var layerId = options.layerId;
 
-  // TODO: Remove this
   this.widgets.each(function (widget) {
-    var url = this.instance.getWidgetURL({
-      widgetId: widget.get('id'),
-      protocol: 'http'
-    });
-
+    // TODO: Not sure what this block is about. It doesn't look like it's being tested
     var layerMeta = widget.layer.get('meta') || {};
     var extraAttrs = {};
     if (layerMeta.steps && layerMeta.column_type && _.isNumber(layerMeta.start) && _.isNumber(layerMeta.end)) {
@@ -106,8 +101,10 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
       };
     }
 
+    // TODO: Instead of having to set the boundingBox on each widget here, we
+    // can inject the widget so that widget models can listen to changes on map bounds
+    // and zoom
     widget.set(_.extend({
-      'url': url,
       'boundingBox': boundingBox
     }, extraAttrs), {
       silent: layerId && layerId !== widget.layer.get('id')

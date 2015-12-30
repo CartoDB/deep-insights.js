@@ -102,10 +102,4 @@ describe('widgets/widget-model', function () {
       expect(this.dataview.getData).not.toHaveBeenCalled();
     });
   });
-
-  it('should trigger loading event when fetch is launched', function () {
-    spyOn(this.model, 'trigger');
-    this.model.fetch();
-    expect(this.model.trigger).toHaveBeenCalledWith('loading', this.model);
-  });
 });
