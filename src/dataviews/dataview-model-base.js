@@ -1,3 +1,4 @@
+var $ = require('jquery');
 var cdb = require('cartodb.js');
 
 module.exports = cdb.core.Model.extend({
@@ -7,38 +8,23 @@ module.exports = cdb.core.Model.extend({
     }, this);
   },
 
-  // TODO: Instead of using Backbone's fetch mechanism, we can use AJAX here
   getData: function (options) {
-    this._setURL(options);
-    this.fetch({
-      success: function () {
-        options.success && options.success(this.get('data'));
-      }.bind(this),
+    var url = this._getURL(options);
+    $.ajax(url, {
+      success: function (data) {
+        options.success && options.success(data);
+      },
       error: options.error
     });
   },
 
-  _setURL: function (options) {
+  _getURL: function (options) {
     var paramsObject = this._paramsForDataQueryFromOptions(options);
-    var queryString = '';
-    var params = [];
-    for (var key in paramsObject) {
-      var value = paramsObject[key];
-      params.push([key, value].join('='));
-    }
-    queryString = params.join('&');
-
-    this.url = this.get('url') + '?' + queryString;
+    return this.get('url') + '?' + $.param(paramsObject);
   },
 
   _paramsForDataQueryFromOptions: function (options) {
     throw new Error('subclasses of dataview-model-base must implement _paramsForDataQueryFromOptions');
-  },
-
-  parse: function (data) {
-    return {
-      data: data
-    };
   },
 
   toJSON: function () {

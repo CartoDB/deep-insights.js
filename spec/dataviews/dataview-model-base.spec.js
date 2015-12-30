@@ -27,7 +27,7 @@ describe('src/dataviews/dataview-model-base', function () {
     });
 
     it('should invoke the success callback', function () {
-      spyOn($, 'ajax').and.callFake(function (options) {
+      spyOn($, 'ajax').and.callFake(function (url, options) {
         options.success({ some: 'data' });
       });
 
@@ -52,7 +52,7 @@ describe('src/dataviews/dataview-model-base', function () {
       this.dataview.getData(options);
 
       // Ajax request failed
-      $.ajax.calls.mostRecent().args[0].error('something went wrong!');
+      $.ajax.calls.mostRecent().args[1].error('something went wrong!');
 
       expect(errorCallback).toHaveBeenCalled();
     });
@@ -74,7 +74,7 @@ describe('src/dataviews/dataview-model-base', function () {
 
       this.dataview.getData(options);
 
-      var fetchURL = $.ajax.calls.mostRecent().args[0].url;
+      var fetchURL = $.ajax.calls.mostRecent().args[0];
       expect(fetchURL).toEqual('http://example.com?option1=option1&option2=option2');
     });
   });
