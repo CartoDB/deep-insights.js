@@ -11,8 +11,8 @@ describe('widgets/widget-model', function () {
       dataview: this.dataview
     });
     this.model._optionsForDataviewQuery = function () {
-      return { a: 1 }
-    }
+      return { a: 1 };
+    };
   });
 
   it('should bind to the changes on the dataview', function () {
@@ -26,7 +26,7 @@ describe('widgets/widget-model', function () {
 
   describe('after first load', function () {
     beforeEach(function () {
-      this.dataview.getData = function (opts) { };
+      this.dataview.getData = function (opts) {};
       spyOn(this.dataview, 'getData');
 
       this.dataview.trigger('dataChanged');
@@ -77,7 +77,6 @@ describe('widgets/widget-model', function () {
   });
 
   describe('when collapsed', function () {
-
     it('should fetch again when collapse is disabled and dataview or boundingBox has changed', function () {
       this.dataview.trigger('dataChanged');
 

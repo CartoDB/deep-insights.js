@@ -1,7 +1,6 @@
 var cdb = require('cartodb.js');
 var Backbone = require('backbone');
 var PublicDashboardConfig = require('../../src/windshaft/public-dashboard-config');
-var HistogramModel = require('../../src/widgets/histogram/model');
 
 describe('windshaft/public-dashboard-config', function () {
   beforeEach(function () {
@@ -20,10 +19,6 @@ describe('windshaft/public-dashboard-config', function () {
       bins: 10
     });
     spyOn(this.dataview1, 'toJSON').and.returnValue('serializedDataview1');
-    var widget = new HistogramModel({}, {
-      layer: this.cartoDBLayer1,
-      dataview: this.dataview1
-    });
     this.dataviews.add(this.dataview1);
 
     this.cartoDBLayer2 = new cdb.geo.CartoDBLayer({
@@ -39,10 +34,6 @@ describe('windshaft/public-dashboard-config', function () {
       bins: 5
     });
     spyOn(this.dataview2, 'toJSON').and.returnValue('serializedDataview2');
-    var widget2 = new HistogramModel({}, {
-      layer: this.cartoDBLayer2,
-      dataview: this.dataview2
-    });
     this.dataviews.add(this.dataview2);
   });
 

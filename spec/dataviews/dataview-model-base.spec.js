@@ -3,14 +3,12 @@ var $ = require('jquery');
 var DataviewModelBase = require('../../src/dataviews/dataview-model-base');
 
 var MyDataview = DataviewModelBase.extend({
-
   _paramsForDataQueryFromOptions: function () {
     return {};
   }
 });
 
 describe('src/dataviews/dataview-model-base', function () {
-
   beforeEach(function () {
     this.dataview = new MyDataview();
   });
@@ -24,7 +22,6 @@ describe('src/dataviews/dataview-model-base', function () {
   });
 
   describe('.getData', function () {
-
     beforeEach(function () {
       this.dataview.set('url', 'http://example.com');
     });

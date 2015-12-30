@@ -6,7 +6,6 @@ var cdb = require('cartodb.js');
  * Default widget model
  */
 module.exports = cdb.core.Model.extend({
-
   defaults: {
     url: '',
     data: [],

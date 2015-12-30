@@ -1,8 +1,6 @@
-var _ = require('underscore');
 var cdb = require('cartodb.js');
 
 module.exports = cdb.core.Model.extend({
-
   initialize: function () {
     this.bind('change:url', function () {
       this.trigger('dataChanged');

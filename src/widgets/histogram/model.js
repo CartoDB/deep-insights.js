@@ -3,7 +3,6 @@ var Backbone = require('backbone');
 var WidgetModel = require('../widget-model');
 
 module.exports = WidgetModel.extend({
-
   initialize: function (attrs, opts) {
     WidgetModel.prototype.initialize.apply(this, arguments);
     this._data = new Backbone.Collection(this.get('data'));

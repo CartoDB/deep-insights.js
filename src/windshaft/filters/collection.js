@@ -2,7 +2,6 @@ var _ = require('underscore');
 var cdb = require('cartodb.js');
 
 module.exports = cdb.Backbone.Collection.extend({
-
   toJSON: function () {
     var json = {};
     var activeFilters = this.getActiveFilters();

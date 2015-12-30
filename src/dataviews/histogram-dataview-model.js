@@ -1,7 +1,6 @@
 var DataviewModelBase = require('./dataview-model-base');
 
 module.exports = DataviewModelBase.extend({
-
   toJSON: function () {
     return {
       type: 'histogram',

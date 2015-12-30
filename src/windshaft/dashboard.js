@@ -9,7 +9,7 @@ var WindshaftDashboard = function (options) {
 
   this.layerGroup = options.layerGroup;
   this.layers = new Backbone.Collection(options.layers);
-// TODO: Remove widgets
+  // TODO: Remove widgets
   this.widgets = options.widgets;
   this.dataviews = options.dataviews;
   this.map = options.map;

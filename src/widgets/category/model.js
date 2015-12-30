@@ -18,7 +18,6 @@ var LockedCatsCollection = require('./models/locked-categories-collection');
  */
 
 module.exports = WidgetModel.extend({
-
   initialize: function (attrs, opts) {
     this._data = new CategoriesCollection();
 
