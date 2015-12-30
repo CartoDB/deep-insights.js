@@ -1,13 +1,8 @@
-var cdb = require('cartodb.js');
 var DataviewModelFactory = require('../src/dataview-model-factory');
 
 describe('dataview-model-factory', function () {
   beforeEach(function () {
     this.factory = new DataviewModelFactory();
-    this.layer = new cdb.core.Model({
-      id: 'layer-uuid',
-      type: 'cartodb'
-    });
   });
 
   it('should call addType for each item', function () {
@@ -72,7 +67,7 @@ describe('dataview-model-factory', function () {
       beforeEach(function () {
         this.returnedObj = {};
         this.createModelSpy.and.returnValue(this.returnedObj);
-        this.result = this.factory.createModel(this.attrs, this.layer, this.layerIndex);
+        this.result = this.factory.createModel(this.attrs);
       });
 
       it('should call create for the matching type', function () {
@@ -81,10 +76,8 @@ describe('dataview-model-factory', function () {
 
       it('should call createModel with given attrs', function () {
         expect(this.createModelSpy).toHaveBeenCalled();
-        expect(this.createModelSpy.calls.argsFor(0).length).toEqual(3);
+        expect(this.createModelSpy.calls.argsFor(0).length).toEqual(1);
         expect(this.createModelSpy.calls.argsFor(0)[0]).toEqual(this.attrs);
-        expect(this.createModelSpy.calls.argsFor(0)[1]).toBe(this.layer);
-        expect(this.createModelSpy.calls.argsFor(0)[2]).toBe(this.layerIndex);
       });
     });
 
@@ -96,7 +89,7 @@ describe('dataview-model-factory', function () {
           layerId: 'meh'
         };
         try {
-          this.factory.createModel(this.attrs, this.layer, this.layerIndex);
+          this.factory.createModel(this.attrs);
         } catch (e) {
           this.e = e;
         }
