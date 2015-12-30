@@ -95,20 +95,17 @@ describe('widgets/histogram/content-view', function () {
     spyOn(this.view, '_onChangeModel').and.callThrough();
     this.dataModel._fetch();
     this.dataModel._data.reset(genHistogramData(20));
-    this.dataModel.trigger('change:data');
     expect(this.view._onChangeModel).toHaveBeenCalled();
     expect(this.view._updateStats).toHaveBeenCalled();
   });
 
   it('should update the stats values', function () {
-    pending('pending');
     expect(this.view.viewModel.get('min')).toBe(undefined);
     expect(this.view.viewModel.get('max')).toBe(undefined);
     expect(this.view.viewModel.get('avg')).toBe(undefined);
     expect(this.view.viewModel.get('total')).toBe(undefined);
 
     this.dataModel._data.reset(genHistogramData(20));
-    this.dataModel.trigger('change:data');
 
     expect(this.view.viewModel.get('min')).not.toBe(0);
     expect(this.view.viewModel.get('max')).not.toBe(0);
