@@ -6,20 +6,17 @@ var CategoriesCollection = require('./categories-collection');
  * Category search model
  */
 module.exports = cdb.core.Model.extend({
+
   defaults: {
     q: '',
-    data: [],
-    url: ''
-  },
-
-  url: function () {
-    return this.get('url') + '/search?q=' + encodeURIComponent(this.get('q'));
+    data: []
   },
 
   initialize: function (attrs, opts) {
     // Locked collection will have the status
     // of the selected/locked items
     this.locked = opts.locked;
+    this._dataview = opts.dataview;
     this._data = new CategoriesCollection();
     this._initBinds();
   },
@@ -103,7 +100,17 @@ module.exports = cdb.core.Model.extend({
 
   fetch: function (opts) {
     this.trigger('loading', this);
-    return cdb.core.Model.prototype.fetch.call(this, opts);
+
+    this._dataview.searchCategories({
+      q: encodeURIComponent(this.get('q')),
+      success: function (data) {
+        this.set(this.parse(data));
+        opts.success(data);
+      }.bind(this),
+      error: function (error) {
+        opts.error(error);
+      }
+    });
   },
 
   sync: function () {

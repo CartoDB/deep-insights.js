@@ -8,6 +8,7 @@ describe('widgets/category/search-title-view', function () {
   beforeEach(function () {
     this.dataview = new Backbone.Model();
     this.dataview.getData = function () {};
+    this.dataview.searchCategories = function () {};
 
     this.model = new CategoryModel(null, {
       filter: new WindshaftFiltersCategory(),
@@ -71,10 +72,20 @@ describe('widgets/category/search-title-view', function () {
     });
 
     it('should not trigger search when text input changes are same as last search query value', function () {
-      spyOn(this.model, 'applySearch');
-      this.model.setSearchQuery('ES');
+      spyOn(this.model, 'applySearch').and.callThrough();
+
+      // Search for 'ES'
       this.view.$('.js-textInput').val('ES');
       this.view._onSubmitForm();
+
+      expect(this.model.applySearch).toHaveBeenCalled();
+      this.model.applySearch.calls.reset();
+
+      // Try to search for 'ES' again
+      this.view.$('.js-textInput').val('ES');
+      this.view._onSubmitForm();
+
+      // No request have been made because query was the same
       expect(this.model.applySearch).not.toHaveBeenCalled();
     });
 

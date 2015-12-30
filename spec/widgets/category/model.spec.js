@@ -5,12 +5,13 @@ var WindshaftFiltersCategory = require('../../../src/windshaft/filters/category'
 
 describe('widgets/category/model', function () {
   beforeEach(function () {
-    var dataview = new Backbone.Model();
-    dataview.getData = function () {};
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+    this.dataview.searchCategories = function () {};
 
     this.model = new CategoryModel(null, {
       filter: new WindshaftFiltersCategory(),
-      dataview: dataview
+      dataview: this.dataview
     });
   });
 
@@ -36,11 +37,6 @@ describe('widgets/category/model', function () {
         spyOn(this.model.rangeModel, 'fetch');
       });
 
-      it('should set search url when it changes', function () {
-        expect(this.model.search.get('url')).toBe('http://heytest.io');
-        expect(this.model.search.url()).toBe('http://heytest.io/search?q=');
-      });
-
       it('should set rangeModel url when it changes', function () {
         expect(this.model.rangeModel.get('url')).toBe('http://heytest.io');
         expect(this.model.rangeModel.url()).toBe('http://heytest.io');
@@ -59,19 +55,6 @@ describe('widgets/category/model', function () {
         spyOn(this.model, 'isSearchApplied').and.returnValue(true);
         this.model.set('boundingBox', 'comeon');
         expect(this.model._fetchDataFromDataview).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('search events dispatcher', function () {
-      it('should trigger search related events', function () {
-        var eventNames = ['loading', 'sync', 'error'];
-        _.each(eventNames, function (eventName) {
-          _.bind(eventDispatcher, this)(this.model.search, eventName);
-        }, this);
-      });
-
-      it('should trigger a change:searchData when search model is fetched', function () {
-        _.bind(eventDispatcher, this)(this.model.search, 'change:data', 'change:searchData');
       });
     });
 
@@ -225,6 +208,42 @@ describe('widgets/category/model', function () {
         expect(this.model.search.setData).toHaveBeenCalled();
         expect(this.model.getLockedSize()).toBe(3);
         expect(this.model.getSearchCount()).toBe(3);
+      });
+    });
+
+    describe('applySearch', function () {
+      it('should trigger \'loading\', \'sync\' and \'change:searchData\' events when request succeeds', function () {
+        spyOn(this.dataview, 'searchCategories').and.callFake(function (options) {
+          options.success({});
+        });
+
+        var loadingCallback = jasmine.createSpy('loadingCallback');
+        var syncCallback = jasmine.createSpy('syncCallback');
+        var searchDataChangedCallback = jasmine.createSpy('searchDataChangedCallback');
+
+        this.model.bind('loading', loadingCallback);
+        this.model.bind('sync', syncCallback);
+        this.model.bind('change:searchData', searchDataChangedCallback);
+
+        this.model.applySearch();
+
+        expect(loadingCallback).toHaveBeenCalledWith(this.model);
+        expect(syncCallback).toHaveBeenCalledWith(this.model);
+        expect(searchDataChangedCallback).toHaveBeenCalled();
+      });
+
+      it('should trigger \'error\' event when request fails', function () {
+        spyOn(this.dataview, 'searchCategories').and.callFake(function (options) {
+          options.error('something went wrong!');
+        });
+
+        var errorCallback = jasmine.createSpy('errorCallback');
+
+        this.model.bind('error', errorCallback);
+
+        this.model.applySearch();
+
+        expect(errorCallback).toHaveBeenCalledWith(this.model);
       });
     });
   });

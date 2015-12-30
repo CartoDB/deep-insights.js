@@ -1,6 +1,16 @@
+var $ = require('jquery');
 var DataviewModelBase = require('./dataview-model-base');
 
 module.exports = DataviewModelBase.extend({
+
+  searchCategories: function (options) {
+    var url = this.get('url') + '/search?q=' + encodeURIComponent(options.q);
+    $.ajax(url, {
+      success: options.success,
+      error: options.error
+    });
+  },
+
   toJSON: function () {
     return {
       type: 'aggregation',

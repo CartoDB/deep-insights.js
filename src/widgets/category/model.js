@@ -34,7 +34,8 @@ module.exports = WidgetModel.extend({
 
     // Search model
     this.search = new WidgetSearchModel({}, {
-      locked: this.locked
+      locked: this.locked,
+      dataview: this.dataview
     });
   },
 
@@ -50,7 +51,6 @@ module.exports = WidgetModel.extend({
     var url = this.get('url');
 
     this.search.set({
-      url: url,
       boundingBox: this.get('boundingBox')
     });
 
@@ -77,45 +77,14 @@ module.exports = WidgetModel.extend({
       });
     }, this);
 
-    this.bind('change:url change:boundingBox', function () {
+    this.bind('change:boundingBox', function () {
       this.search.set({
-        url: this.get('url'),
         boundingBox: this.get('boundingBox')
       });
     }, this);
 
-    this.bind('change:collapsed', function (mdl, isCollapsed) {
-      if (!isCollapsed) {
-        if (mdl.changedAttributes(this._previousAttrs)) {
-          this._fetchDataFromDataview();
-        }
-      } else {
-        // TODO: We will need to different attributes here once
-        // url and boundingBox will be gone
-        this._previousAttrs = {
-          url: this.get('url'),
-          boundingBox: this.get('boundingBox')
-        };
-      }
-    }, this);
-
     this.locked.bind('change add remove', function () {
       this.trigger('change:lockCollection', this.locked, this);
-    }, this);
-
-    this.search.bind('loading', function () {
-      this.trigger('loading', this);
-    }, this);
-    this.search.bind('sync', function () {
-      this.trigger('sync', this);
-    }, this);
-    this.search.bind('error', function (e) {
-      if (!e || (e && e.statusText !== 'abort')) {
-        this.trigger('error', this);
-      }
-    }, this);
-    this.search.bind('change:data', function () {
-      this.trigger('change:searchData', this.search, this);
     }, this);
   },
 
@@ -200,14 +169,6 @@ module.exports = WidgetModel.extend({
     return this.search.getSearchQuery();
   },
 
-  setSearchQuery: function (q) {
-    this.search.set('q', q);
-  },
-
-  isSearchValid: function () {
-    return this.search.isValid();
-  },
-
   getSearchResult: function () {
     return this.search.getData();
   },
@@ -216,8 +177,9 @@ module.exports = WidgetModel.extend({
     return this.search.getCount();
   },
 
-  applySearch: function () {
-    this.search.fetch();
+  applySearch: function (q) {
+    this.search.set('q', q);
+    this._searchCategories();
   },
 
   isSearchApplied: function () {
@@ -289,10 +251,25 @@ module.exports = WidgetModel.extend({
 
   refresh: function () {
     if (this.isSearchApplied()) {
-      this.search.fetch();
+      this._searchCategories();
     } else {
       this._fetchDataFromDataview();
     }
+  },
+
+  _searchCategories: function () {
+    this.trigger('loading', this);
+    this.search.fetch({
+      success: function () {
+        this.trigger('sync', this);
+        this.trigger('change:searchData', this.search, this);
+      }.bind(this),
+      error: function (e) {
+        if (!e || (e && e.statusText !== 'abort')) {
+          this.trigger('error', this);
+        }
+      }.bind(this)
+    });
   },
 
   // Data parser methods //
