@@ -32,7 +32,6 @@ WindshaftDashboard.prototype._createInstance = function (options) {
 
   var dashboardConfig = this.configGenerator.generate({
     layers: this.layers.models,
-    widgets: this.widgets,
     dataviews: this.dataviews
   });
 
