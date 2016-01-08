@@ -89,11 +89,14 @@ module.exports = cdb.core.View.extend({
     }
     var q = this.$('.js-textInput').val();
     if (this.dataModel.getSearchQuery() !== q) {
-      this.dataModel.setSearchQuery(q);
-      if (this.dataModel.isSearchValid()) {
-        this.dataModel.applySearch();
+      if (this._isSearchValid(q)) {
+        this.dataModel.applySearch(q);
       }
     }
+  },
+
+  _isSearchValid: function (q) {
+    return !!(q || '');
   },
 
   _focusOnInput: function () {

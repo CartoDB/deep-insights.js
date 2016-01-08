@@ -5,11 +5,17 @@ var TorqueTimeSliderView = require('../../../src/widgets/time-series/torque-time
 
 describe('widgets/time-series/torque-time-slider-view', function () {
   beforeEach(function () {
+    var dataview = new cdb.core.Model();
+    dataview.getData = function (options) {
+      options.success({});
+    };
+
     this.model = new HistogramModel({
       bins: 256
     }, {
-      filter: new cdb.core.Model(),
-      layer: new cdb.core.Model()
+      layer: new cdb.core.Model(),
+      dataview: dataview,
+      filter: new cdb.core.Model()
     });
     this.torqueLayerModel = new cdb.geo.TorqueLayer({
       isRunning: false,

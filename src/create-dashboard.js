@@ -1,3 +1,4 @@
+var Backbone = require('backbone');
 var _ = require('underscore');
 var cdb = require('cartodb.js');
 var DashboardView = require('./dashboard-view');
@@ -15,7 +16,56 @@ var WindshaftDashboard = require('./windshaft/dashboard');
 var WindshaftPrivateDashboardConfig = require('./windshaft/private-dashboard-config');
 var WindshaftPublicDashboardConfig = require('./windshaft/public-dashboard-config');
 
+var DataviewModelFactory = require('./dataview-model-factory');
+var CategoryDataview = require('./dataviews/category-dataview-model');
+var FormulaDataview = require('./dataviews/formula-dataview-model');
+var HistogramDataview = require('./dataviews/histogram-dataview-model');
+var ListDataview = require('./dataviews/list-dataview-model');
+
 module.exports = function (selector, diJSON, visOpts) {
+  var dataviewsCollection = new Backbone.Collection();
+
+  var dataviewModelFactory = new DataviewModelFactory({
+    list: function (attrs) {
+      return new ListDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        columns: attrs.columns
+      });
+    },
+    formula: function (attrs) {
+      // TODO once dataviews are moved to cartodb.js, replace with proper API call, something like this I imagine:
+      // return foobar.dataviews.createList(layer, attrs.column, attrs.operation);
+      return new FormulaDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        operation: attrs.operation
+      });
+    },
+    histogram: function (attrs) {
+      return new HistogramDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        bins: attrs.bins
+      });
+    },
+    // TODO: Rename type to category instead of aggregation?
+    aggregation: function (attrs) {
+      return new CategoryDataview({
+        type: attrs.type,
+        id: attrs.id,
+        layerId: attrs.layerId,
+        column: attrs.column,
+        aggregation: attrs.aggregation
+      });
+    }
+  });
+
   var widgetModelFactory = new WidgetModelFactory({
     list: function (attrs, opts) {
       return new ListModel(attrs, opts);
@@ -23,10 +73,10 @@ module.exports = function (selector, diJSON, visOpts) {
     formula: function (attrs, opts) {
       return new FormulaModel(attrs, opts);
     },
-    histogram: function (attrs, opts, layerIndex) {
+    histogram: function (attrs, opts) {
       opts.filter = new RangeFilter({
         widgetId: attrs.id,
-        layerIndex: layerIndex
+        layerIndex: attrs.layerIndex
       });
       return new HistogramModel(attrs, opts);
     },
@@ -35,7 +85,7 @@ module.exports = function (selector, diJSON, visOpts) {
       attrs.type = 'histogram';
       opts.filter = new RangeFilter({
         widgetId: attrs.id,
-        layerIndex: layerIndex
+        layerIndex: attrs.layerIndex
       });
       var model = new HistogramModel(attrs, opts);
 
@@ -113,10 +163,19 @@ module.exports = function (selector, diJSON, visOpts) {
 
     if (layer) {
       var layerIndex = interactiveLayers.indexOf(layer);
-      var attrs = _.extend({
-        id: id
+      var widgetAttrs = _.extend({
+        id: id,
+        layerIndex: layerIndex
       }, d);
-      var widgetModel = widgetModelFactory.createModel(layer, layerIndex, attrs);
+
+      var dataview = dataviewModelFactory.createModel(widgetAttrs);
+      dataviewsCollection.add(dataview);
+
+      var widgetOptions = {
+        layer: layer,
+        dataview: dataview
+      };
+      var widgetModel = widgetModelFactory.createModel(widgetAttrs, widgetOptions);
       widgetModels.push(widgetModel);
     } else {
       cdb.log.error('no layer found for widget ' + id + ':' + JSON.stringify(d));
@@ -144,7 +203,7 @@ module.exports = function (selector, diJSON, visOpts) {
     forceCors: datasource.force_cors
   });
 
-  new WindshaftDashboard({ // eslint-disable-line
+  var dashboard = new WindshaftDashboard({ // eslint-disable-line
     client: windshaftClient,
     configGenerator: configGenerator,
     statTag: datasource.stat_tag,
@@ -152,6 +211,7 @@ module.exports = function (selector, diJSON, visOpts) {
     layerGroup: cartoDBLayerGroup,
     layers: interactiveLayers,
     widgets: widgets,
+    dataviews: dataviewsCollection,
     map: vis.map
   });
 
@@ -161,6 +221,9 @@ module.exports = function (selector, diJSON, visOpts) {
       vis.mapView.invalidateSize();
     }, 0);
   }
+
+  window.dashboard = dashboard;
+  window.dataviews = dataviewsCollection;
 
   return {
     dashboardView: dashboardView,

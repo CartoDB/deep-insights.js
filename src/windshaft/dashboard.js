@@ -9,7 +9,9 @@ var WindshaftDashboard = function (options) {
 
   this.layerGroup = options.layerGroup;
   this.layers = new Backbone.Collection(options.layers);
+  // TODO: Remove widgets
   this.widgets = options.widgets;
+  this.dataviews = options.dataviews;
   this.map = options.map;
   this.client = options.client;
   this.statTag = options.statTag;
@@ -30,7 +32,7 @@ WindshaftDashboard.prototype._createInstance = function (options) {
 
   var dashboardConfig = this.configGenerator.generate({
     layers: this.layers.models,
-    widgets: this.widgets
+    dataviews: this.dataviews
   });
 
   var filtersFromVisibleLayers = this.widgets.chain()
@@ -87,11 +89,7 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
   var layerId = options.layerId;
 
   this.widgets.each(function (widget) {
-    var url = this.instance.getWidgetURL({
-      widgetId: widget.get('id'),
-      protocol: 'http'
-    });
-
+    // TODO: Not sure what this block is about. It doesn't look like it's being tested
     var layerMeta = widget.layer.get('meta') || {};
     var extraAttrs = {};
     if (layerMeta.steps && layerMeta.column_type && _.isNumber(layerMeta.start) && _.isNumber(layerMeta.end)) {
@@ -103,11 +101,28 @@ WindshaftDashboard.prototype._updateWidgetURLs = function (options) {
       };
     }
 
+    // TODO: Instead of having to set the boundingBox on each widget here, we
+    // can inject the widget so that widget models can listen to changes on map bounds
+    // and zoom
     widget.set(_.extend({
-      'url': url,
       'boundingBox': boundingBox
     }, extraAttrs), {
       silent: layerId && layerId !== widget.layer.get('id')
+    });
+  }, this);
+
+  this.dataviews.each(function (dataview) {
+    var url = this.instance.getWidgetURL({
+      widgetId: dataview.get('id'),
+      protocol: 'http'
+    });
+
+    var extraAttrs = {};
+    dataview.set(_.extend({
+      'url': url,
+      'boundingBox': boundingBox
+    }, extraAttrs), {
+      silent: layerId && layerId !== dataview.get('layerId')
     });
   }, this);
 };

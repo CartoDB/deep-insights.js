@@ -1,4 +1,3 @@
-var _ = require('underscore');
 var cdb = require('cartodb.js');
 
 /**
@@ -6,40 +5,26 @@ var cdb = require('cartodb.js');
  *  from the category.
  *
  */
-
 module.exports = cdb.core.Model.extend({
-  defaults: {
-    url: '',
-    totalCount: 0,
-    categoriesCount: 0
+  initialize: function (attrs, options) {
+    this._dataview = options.dataview;
   },
 
-  url: function () {
-    return this.get('url');
+  getCategoriesCount: function (options) {
+    this._dataview.getData({
+      success: function (data) {
+        options.success(this._parse(data));
+      }.bind(this),
+      error: function (error) {
+        options.error(error);
+      }
+    });
   },
 
-  initialize: function () {
-    this.bind('change:url', function () {
-      this.fetch();
-    }, this);
-  },
-
-  setUrl: function (url) {
-    this.set('url', url);
-  },
-
-  parse: function (d) {
-    // Calculating the total amount of all categories with the sum of all
-    // values from this model included the aggregated (Other)
+  _parse: function (response) {
     return {
-      categoriesCount: d.categoriesCount,
-      totalCount: _.reduce(
-        _.pluck(d.categories, 'value'),
-        function (memo, value) {
-          return memo + value;
-        },
-        0
-      )
+      categoriesCount: response.categoriesCount,
+      totalCount: response.count
     };
   }
 });

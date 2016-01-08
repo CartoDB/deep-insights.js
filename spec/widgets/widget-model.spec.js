@@ -1,55 +1,71 @@
+var Backbone = require('backbone');
 var WidgetModel = require('../../src/widgets/widget-model');
 
 describe('widgets/widget-model', function () {
   beforeEach(function () {
-    this.model = new WidgetModel();
-  });
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+    spyOn(this.dataview, 'getData');
 
-  it('should listen to a dashboardBaseURL attribute change at the beginning', function () {
-    spyOn(this.model, 'once').and.callThrough();
-    this.model._initBinds(); // _initBinds is called when object is created, so
-    // it is necessary to called again to have the spy
-    // correctly set.
-    expect(this.model.once.calls.argsFor(0)[0]).toEqual('change:url');
-  });
-
-  it('should add binds for url and bbox changes after first load', function () {
-    spyOn(this.model, 'bind').and.callThrough();
-    this.model.fetch = function (opts) {
-      opts.success();
+    this.model = new WidgetModel({}, {
+      dataview: this.dataview
+    });
+    this.model._optionsForDataviewQuery = function () {
+      return { a: 1 };
     };
-    this.model.set('url', 'newurl');
-    expect(this.model.bind.calls.argsFor(0)[0]).toEqual('change:url');
-    expect(this.model.bind.calls.argsFor(1)[0]).toEqual('change:boundingBox');
+  });
+
+  it('should bind to the changes on the dataview', function () {
+    this.dataview.trigger('dataChanged');
+    expect(this.dataview.getData).toHaveBeenCalledWith({
+      a: 1,
+      success: jasmine.any(Function),
+      error: jasmine.any(Function)
+    });
   });
 
   describe('after first load', function () {
     beforeEach(function () {
-      this.model.fetch = function (opts) {
-        opts.success();
-      };
-      this.model.set('url', 'newurl');
+      this.dataview.getData = function (opts) {};
+      spyOn(this.dataview, 'getData');
+
+      this.dataview.trigger('dataChanged');
     });
 
-    it('should not fetch new data when url changes and sync is not enabled', function () {
+    it('should not fetch new data when the dataview has new data and sync is disabled', function () {
+      expect(this.dataview.getData).toHaveBeenCalled();
+
       this.model.set('sync', false);
-      spyOn(this.model, 'fetch');
-      this.model.trigger('change:url', this.model);
-      expect(this.model.fetch).not.toHaveBeenCalled();
+
+      this.dataview.getData.calls.reset();
+
+      this.dataview.trigger('dataChanged');
+
+      expect(this.dataview.getData).not.toHaveBeenCalled();
     });
 
     it('should not fetch new data when url changes and widget is collapsed', function () {
+      expect(this.dataview.getData).toHaveBeenCalled();
+
       this.model.set('collapsed', true);
-      spyOn(this.model, 'fetch');
-      this.model.trigger('change:url', this.model);
-      expect(this.model.fetch).not.toHaveBeenCalled();
+
+      this.dataview.getData.calls.reset();
+
+      this.dataview.trigger('dataChanged');
+
+      expect(this.dataview.getData).not.toHaveBeenCalled();
     });
 
     it('should not fetch new data when bbox changes and bbox is not enabled', function () {
+      expect(this.dataview.getData).toHaveBeenCalled();
+
       this.model.set('bbox', false);
-      spyOn(this.model, 'fetch');
+
+      this.dataview.getData.calls.reset();
+
       this.model.trigger('change:boundingBox', this.model);
-      expect(this.model.fetch).not.toHaveBeenCalled();
+
+      expect(this.dataview.getData).not.toHaveBeenCalled();
     });
 
     it('should not fetch new data when bbox changes and widget is collapsed', function () {
@@ -60,25 +76,30 @@ describe('widgets/widget-model', function () {
     });
   });
 
-  describe('when collapse', function () {
-    it('should fetch again when collapse is disabled and url or boundingBox has changed', function () {
-      spyOn(this.model, '_fetch');
+  describe('when collapsed', function () {
+    it('should fetch again when collapse is disabled and dataview or boundingBox has changed', function () {
+      this.dataview.trigger('dataChanged');
+
+      expect(this.dataview.getData).toHaveBeenCalled();
+
+      this.dataview.getData.calls.reset();
+
       this.model.set('collapsed', true);
-      this.model.set('url', 'hello');
+
+      // While the widget was collapsed, data changed
+      this.dataview.trigger('dataChanged');
+
       this.model.set('collapsed', false);
-      expect(this.model._fetch).toHaveBeenCalled();
+
+      expect(this.dataview.getData).toHaveBeenCalled();
     });
 
     it('should not fetch when collapsed is enabled', function () {
-      spyOn(this.model, '_fetch');
-      this.model.set('collapsed', true);
-      expect(this.model._fetch).not.toHaveBeenCalled();
-    });
-  });
+      this.dataview.getData.calls.reset();
 
-  it('should trigger loading event when fetch is launched', function () {
-    spyOn(this.model, 'trigger');
-    this.model.fetch();
-    expect(this.model.trigger).toHaveBeenCalledWith('loading', this.model);
+      this.model.set('collapsed', true);
+
+      expect(this.dataview.getData).not.toHaveBeenCalled();
+    });
   });
 });

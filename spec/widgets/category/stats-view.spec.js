@@ -1,3 +1,4 @@
+var Backbone = require('backbone');
 var CategoryModel = require('../../../src/widgets/category/model.js');
 var ViewModel = require('../../../src/widgets/widget-content-model.js');
 var StatsView = require('../../../src/widgets/category/stats/stats-view.js');
@@ -5,8 +6,12 @@ var WindshaftFiltersCategory = require('../../../src/windshaft/filters/category'
 
 describe('widgets/category/stats-view', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+
     this.model = new CategoryModel(null, {
-      filter: new WindshaftFiltersCategory()
+      filter: new WindshaftFiltersCategory(),
+      dataview: this.dataview
     });
     this.viewModel = new ViewModel();
     this.view = new StatsView({

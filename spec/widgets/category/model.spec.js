@@ -1,11 +1,17 @@
 var _ = require('underscore');
+var Backbone = require('backbone');
 var CategoryModel = require('../../../src/widgets/category/model.js');
 var WindshaftFiltersCategory = require('../../../src/windshaft/filters/category');
 
 describe('widgets/category/model', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
+    this.dataview.getData = function () {};
+    this.dataview.searchCategories = function () {};
+
     this.model = new CategoryModel(null, {
-      filter: new WindshaftFiltersCategory()
+      filter: new WindshaftFiltersCategory(),
+      dataview: this.dataview
     });
   });
 
@@ -17,29 +23,8 @@ describe('widgets/category/model', function () {
 
   describe('binds', function () {
     beforeEach(function () {
-      this.model.set({
-        url: 'http://heytest.io'
-      });
       // Simulating first interaction with client.js
       this.model._onChangeBinds();
-    });
-
-    describe('url', function () {
-      beforeEach(function () {
-        spyOn(this.model, 'fetch');
-        spyOn(this.model.search, 'fetch');
-        spyOn(this.model.rangeModel, 'fetch');
-      });
-
-      it('should set search url when it changes', function () {
-        expect(this.model.search.get('url')).toBe('http://heytest.io');
-        expect(this.model.search.url()).toBe('http://heytest.io/search?q=');
-      });
-
-      it('should set rangeModel url when it changes', function () {
-        expect(this.model.rangeModel.get('url')).toBe('http://heytest.io');
-        expect(this.model.rangeModel.url()).toBe('http://heytest.io');
-      });
     });
 
     describe('boundingBox', function () {
@@ -50,23 +35,10 @@ describe('widgets/category/model', function () {
       });
 
       it('should fetch itself if bounding box changes only when search is not applied', function () {
-        spyOn(this.model, '_fetch');
+        spyOn(this.model, '_fetchDataFromDataview');
         spyOn(this.model, 'isSearchApplied').and.returnValue(true);
         this.model.set('boundingBox', 'comeon');
-        expect(this.model._fetch).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('search events dispatcher', function () {
-      it('should trigger search related events', function () {
-        var eventNames = ['loading', 'sync', 'error'];
-        _.each(eventNames, function (eventName) {
-          _.bind(eventDispatcher, this)(this.model.search, eventName);
-        }, this);
-      });
-
-      it('should trigger a change:searchData when search model is fetched', function () {
-        _.bind(eventDispatcher, this)(this.model.search, 'change:data', 'change:searchData');
+        expect(this.model._fetchDataFromDataview).not.toHaveBeenCalled();
       });
     });
 
@@ -76,20 +48,6 @@ describe('widgets/category/model', function () {
         _.each(eventNames, function (eventName) {
           _.bind(eventDispatcher, this)(this.model.locked, eventName, 'change:lockCollection');
         }, this);
-      });
-    });
-
-    describe('range model', function () {
-      it('should set totalCount when rangeModel has changed', function () {
-        expect(this.model.get('totalCount')).toBeUndefined();
-        this.model.rangeModel.set({ totalCount: 1000 });
-        expect(this.model.get('totalCount')).toBe(1000);
-      });
-
-      it('should set categoriesCount when rangeModel has changed', function () {
-        expect(this.model.get('categoriesCount')).toBeUndefined();
-        this.model.rangeModel.set({ categoriesCount: 123 });
-        expect(this.model.get('categoriesCount')).toBe(123);
       });
     });
   });
@@ -170,20 +128,20 @@ describe('widgets/category/model', function () {
 
     describe('locked/unlocked', function () {
       beforeEach(function () {
-        spyOn(this.model, '_fetch');
+        spyOn(this.model, '_fetchDataFromDataview');
         spyOn(this.model, 'acceptAll');
       });
 
       it('should lock widget', function () {
         this.model.lockCategories();
         expect(this.model.get('locked')).toBeTruthy();
-        expect(this.model._fetch).toHaveBeenCalled();
+        expect(this.model._fetchDataFromDataview).toHaveBeenCalled();
       });
 
       it('should unlock widget', function () {
         this.model.unlockCategories();
         expect(this.model.get('locked')).toBeFalsy();
-        expect(this.model._fetch).not.toHaveBeenCalled();
+        expect(this.model._fetchDataFromDataview).not.toHaveBeenCalled();
         expect(this.model.acceptAll).toHaveBeenCalled();
       });
     });
@@ -222,19 +180,55 @@ describe('widgets/category/model', function () {
         expect(this.model.getSearchCount()).toBe(3);
       });
     });
+
+    describe('applySearch', function () {
+      it('should trigger \'loading\', \'sync\' and \'change:searchData\' events when request succeeds', function () {
+        spyOn(this.dataview, 'searchCategories').and.callFake(function (options) {
+          options.success({});
+        });
+
+        var loadingCallback = jasmine.createSpy('loadingCallback');
+        var syncCallback = jasmine.createSpy('syncCallback');
+        var searchDataChangedCallback = jasmine.createSpy('searchDataChangedCallback');
+
+        this.model.bind('loading', loadingCallback);
+        this.model.bind('sync', syncCallback);
+        this.model.bind('change:searchData', searchDataChangedCallback);
+
+        this.model.applySearch();
+
+        expect(loadingCallback).toHaveBeenCalledWith(this.model);
+        expect(syncCallback).toHaveBeenCalledWith(this.model);
+        expect(searchDataChangedCallback).toHaveBeenCalled();
+      });
+
+      it('should trigger \'error\' event when request fails', function () {
+        spyOn(this.dataview, 'searchCategories').and.callFake(function (options) {
+          options.error('something went wrong!');
+        });
+
+        var errorCallback = jasmine.createSpy('errorCallback');
+
+        this.model.bind('error', errorCallback);
+
+        this.model.applySearch();
+
+        expect(errorCallback).toHaveBeenCalledWith(this.model);
+      });
+    });
   });
 
   it('should refresh its own data only if the search is not applied', function () {
-    spyOn(this.model, '_fetch');
+    spyOn(this.model, '_fetchDataFromDataview');
     spyOn(this.model.search, 'fetch');
     this.model.refresh();
-    expect(this.model._fetch.calls.count()).toEqual(1);
-    expect(this.model._fetch).toHaveBeenCalled();
+    expect(this.model._fetchDataFromDataview.calls.count()).toEqual(1);
+    expect(this.model._fetchDataFromDataview).toHaveBeenCalled();
     expect(this.model.search.fetch).not.toHaveBeenCalled();
     spyOn(this.model, 'isSearchApplied').and.returnValue(true);
     this.model.refresh();
     expect(this.model.search.fetch).toHaveBeenCalled();
-    expect(this.model._fetch.calls.count()).toEqual(1);
+    expect(this.model._fetchDataFromDataview.calls.count()).toEqual(1);
   });
 
   describe('parseData', function () {
@@ -305,6 +299,20 @@ describe('widgets/category/model', function () {
 
   it('should have defined "_onFilterChanged" method', function () {
     expect(this.model._onFilterChanged).toBeDefined();
+  });
+
+  it('should set the totalCount and categoriesCount attributes after the dataview has been fetched', function () {
+    spyOn(this.dataview, 'getData').and.callFake(function (options) {
+      options.success({
+        count: 10,
+        categoriesCount: 5
+      });
+    });
+
+    this.model._onChangeBinds();
+
+    expect(this.model.get('totalCount')).toEqual(10);
+    expect(this.model.get('categoriesCount')).toEqual(5);
   });
 });
 

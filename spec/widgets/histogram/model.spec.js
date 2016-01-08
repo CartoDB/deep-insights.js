@@ -5,18 +5,12 @@ describe('widgets/histogram/model', function () {
   beforeEach(function () {
     this.filter = new cdb.core.Model();
     this.layer = new cdb.core.Model();
+    this.dataview = new cdb.core.Model();
     this.model = new WidgetModel({}, {
       filter: this.filter,
-      layer: this.layer
+      layer: this.layer,
+      dataview: this.dataview
     });
-  });
-
-  it('should submit the bbox if enabled', function () {
-    this.model.set({ boundingBox: 1234 });
-    expect(this.model.url()).toBe('');
-
-    this.model.set({ submitBBox: true });
-    expect(this.model.url()).toBe('?bbox=1234');
   });
 
   it('should parse the bins', function () {

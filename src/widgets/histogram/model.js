@@ -3,35 +3,6 @@ var Backbone = require('backbone');
 var WidgetModel = require('../widget-model');
 
 module.exports = WidgetModel.extend({
-  url: function () {
-    var params = [];
-
-    if (this.get('columnType')) {
-      params.push('column_type=' + this.get('columnType'));
-    }
-    if (_.isNumber(this.get('start'))) {
-      params.push('start=' + this.get('start'));
-    }
-    if (_.isNumber(this.get('end'))) {
-      params.push('end=' + this.get('end'));
-    }
-    if (_.isNumber(this.get('bins'))) {
-      params.push('bins=' + this.get('bins'));
-    }
-    if (_.isNumber(this.get('own_filter'))) {
-      params.push('own_filter=' + this.get('own_filter'));
-    }
-    if (this.get('boundingBox') && this.get('submitBBox')) {
-      params.push('bbox=' + this.get('boundingBox'));
-    }
-
-    var url = this.get('url');
-    if (params.length > 0) {
-      url += '?' + params.join('&');
-    }
-    return url;
-  },
-
   initialize: function (attrs, opts) {
     WidgetModel.prototype.initialize.apply(this, arguments);
     this._data = new Backbone.Collection(this.get('data'));
@@ -42,6 +13,30 @@ module.exports = WidgetModel.extend({
     }, this);
 
     this.layer.bind('change:meta', this._onChangeLayerMeta, this);
+  },
+
+  _optionsForDataviewQuery: function () {
+    var options = {};
+    if (this.get('columnType')) {
+      options.columnType = this.get('columnType');
+    }
+    if (_.isNumber(this.get('start'))) {
+      options.start = this.get('start');
+    }
+    if (_.isNumber(this.get('end'))) {
+      options.end = this.get('end');
+    }
+    if (_.isNumber(this.get('bins'))) {
+      options.bins = this.get('bins');
+    }
+    if (_.isNumber(this.get('own_filter'))) {
+      options.ownFilter = this.get('own_filter');
+    }
+    if (this.get('boundingBox') && this.get('submitBBox')) {
+      options.boundingBox = this.get('boundingBox');
+    }
+
+    return options;
   },
 
   getData: function () {
@@ -77,27 +72,6 @@ module.exports = WidgetModel.extend({
     return {
       data: buckets,
       nulls: data.nulls
-    };
-  },
-
-  // set bins for the histograms
-  // @bins should be an array with the format [{ start: ..., end: ..., freq: ..., min: ..., max:   }, ...]
-  //    - start, end: are the bucket bounds
-  //    - min, max: the min and the max value for all the points in that bucket
-  //    - freq: count
-  setBins: function (bins, options) {
-    this._data.reset(bins, options);
-    this.set('data', { bins: bins }, options);
-    return this;
-  },
-
-  toJSON: function (d) {
-    return {
-      type: 'histogram',
-      options: {
-        column: this.get('column'),
-        bins: this.get('bins')
-      }
     };
   },
 

@@ -1,12 +1,16 @@
+var Backbone = require('backbone');
 var WidgetModel = require('../../../src/widgets/widget-model');
 var WidgetLoaderView = require('../../../src/widgets/standard/widget-loader-view');
 
 describe('widgets/standard/widget-loader-view', function () {
   beforeEach(function () {
+    this.dataview = new Backbone.Model();
     this.model = new WidgetModel({
       id: 'widget_1',
       title: 'Hello widget',
       columns: ['cartodb_id', 'description']
+    }, {
+      dataview: this.dataview
     });
 
     spyOn(this.model, 'bind').and.callThrough();

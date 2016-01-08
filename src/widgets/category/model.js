@@ -18,10 +18,6 @@ var LockedCatsCollection = require('./models/locked-categories-collection');
  */
 
 module.exports = WidgetModel.extend({
-  url: function () {
-    return this.get('url') + '?bbox=' + this.get('boundingBox') + '&own_filter=' + (this.get('locked') ? 1 : 0);
-  },
-
   initialize: function (attrs, opts) {
     this._data = new CategoriesCollection();
 
@@ -31,44 +27,38 @@ module.exports = WidgetModel.extend({
     this.locked = new LockedCatsCollection();
 
     // Internal model for calculating total amount of values in the category
-    this.rangeModel = new CategoryModelRange();
+    this.rangeModel = new CategoryModelRange({}, {
+      dataview: this.dataview
+    });
 
     // Colors class
     this.colors = new CategoryColors();
 
     // Search model
     this.search = new WidgetSearchModel({}, {
-      locked: this.locked
+      locked: this.locked,
+      dataview: this.dataview
     });
+  },
+
+  _optionsForDataviewQuery: function () {
+    return {
+      boundingBox: this.get('boundingBox'),
+      ownFilter: (this.get('locked') ? 1 : 0)
+    };
   },
 
   // Set any needed parameter when they have changed in this model
   _setInternalModels: function () {
-    var url = this.get('url');
-
     this.search.set({
-      url: url,
       boundingBox: this.get('boundingBox')
     });
-
-    this.rangeModel.setUrl(url);
   },
 
   _onChangeBinds: function () {
     this._setInternalModels();
 
-    this.rangeModel.bind('change:totalCount change:categoriesCount', function () {
-      this.set({
-        totalCount: this.rangeModel.get('totalCount'),
-        categoriesCount: this.rangeModel.get('categoriesCount')
-      });
-    }, this);
-
-    this.bind('change:url', function () {
-      if (this.get('sync') && !this.isCollapsed()) {
-        this._fetch();
-      }
-    }, this);
+    WidgetModel.prototype._onChangeBinds.call(this);
 
     this.bind('change:boundingBox', function () {
       // If a search is applied and bounding bounds has changed,
@@ -78,44 +68,28 @@ module.exports = WidgetModel.extend({
       }
     }, this);
 
-    this.bind('change:url change:boundingBox', function () {
+    this.rangeModel.getCategoriesCount({
+      success: function (response) {
+        this.set({
+          totalCount: response.totalCount,
+          categoriesCount: response.categoriesCount
+        });
+      }.bind(this)
+    });
+
+    this.bind('change:boundingBox', function () {
       this.search.set({
-        url: this.get('url'),
         boundingBox: this.get('boundingBox')
       });
-    }, this);
-
-    this.bind('change:collapsed', function (mdl, isCollapsed) {
-      if (!isCollapsed) {
-        if (mdl.changedAttributes(this._previousAttrs)) {
-          this._fetch();
-        }
-      } else {
-        this._previousAttrs = {
-          url: this.get('url'),
-          boundingBox: this.get('boundingBox')
-        };
-      }
     }, this);
 
     this.locked.bind('change add remove', function () {
       this.trigger('change:lockCollection', this.locked, this);
     }, this);
+  },
 
-    this.search.bind('loading', function () {
-      this.trigger('loading', this);
-    }, this);
-    this.search.bind('sync', function () {
-      this.trigger('sync', this);
-    }, this);
-    this.search.bind('error', function (e) {
-      if (!e || (e && e.statusText !== 'abort')) {
-        this.trigger('error', this);
-      }
-    }, this);
-    this.search.bind('change:data', function () {
-      this.trigger('change:searchData', this.search, this);
-    }, this);
+  _fetchOnBoundingBoxChanged: function () {
+    return this.get('bbox') && !this.isSearchApplied() && !this.isCollapsed();
   },
 
   /*
@@ -181,7 +155,7 @@ module.exports = WidgetModel.extend({
 
   lockCategories: function () {
     this.set('locked', true);
-    this._fetch();
+    this._fetchDataFromDataview();
   },
 
   unlockCategories: function () {
@@ -195,14 +169,6 @@ module.exports = WidgetModel.extend({
     return this.search.getSearchQuery();
   },
 
-  setSearchQuery: function (q) {
-    this.search.set('q', q);
-  },
-
-  isSearchValid: function () {
-    return this.search.isValid();
-  },
-
   getSearchResult: function () {
     return this.search.getData();
   },
@@ -211,8 +177,9 @@ module.exports = WidgetModel.extend({
     return this.search.getCount();
   },
 
-  applySearch: function () {
-    this.search.fetch();
+  applySearch: function (q) {
+    this.search.set('q', q);
+    this._searchCategories();
   },
 
   isSearchApplied: function () {
@@ -284,10 +251,25 @@ module.exports = WidgetModel.extend({
 
   refresh: function () {
     if (this.isSearchApplied()) {
-      this.search.fetch();
+      this._searchCategories();
     } else {
-      this._fetch();
+      this._fetchDataFromDataview();
     }
+  },
+
+  _searchCategories: function () {
+    this.trigger('loading', this);
+    this.search.fetch({
+      success: function () {
+        this.trigger('sync', this);
+        this.trigger('change:searchData', this.search, this);
+      }.bind(this),
+      error: function (e) {
+        if (!e || (e && e.statusText !== 'abort')) {
+          this.trigger('error', this);
+        }
+      }.bind(this)
+    });
   },
 
   // Data parser methods //
@@ -367,19 +349,5 @@ module.exports = WidgetModel.extend({
       this.applyCategoryColors();
     }
     return attrs;
-  },
-
-  // Backbone toJson function override
-
-  toJSON: function () {
-    return {
-      type: 'aggregation',
-      options: {
-        column: this.get('column'),
-        aggregation: this.get('aggregation'),
-        aggregationColumn: this.get('aggregationColumn')
-      }
-    };
   }
-
 });

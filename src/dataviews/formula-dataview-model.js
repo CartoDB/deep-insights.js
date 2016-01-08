@@ -1,0 +1,19 @@
+var DataviewModelBase = require('./dataview-model-base');
+
+module.exports = DataviewModelBase.extend({
+  toJSON: function () {
+    return {
+      type: 'formula',
+      options: {
+        column: this.get('column'),
+        operation: this.get('operation')
+      }
+    };
+  },
+
+  _paramsForDataQueryFromOptions: function (options) {
+    return {
+      bbox: options.boundingBox
+    };
+  }
+});
