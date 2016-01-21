@@ -4,6 +4,8 @@
 @import '../variables/sizes';
 @import '../variables/mixins';
 
+$sMargin-canvas2: 78px;
+
 .CDB-Widget-canvas {
   position: relative;
   top: 0;
@@ -70,10 +72,13 @@
 
 // Widget media query
 @include media-query() {
+  .CDB-Widget-tooltip {
+    display: none !important;
+  }
   .CDB-Widget-canvas {
-    width: calc(100% - $baseSize * 11);
-    min-width: calc(100% - $baseSize * 11);
-    max-width: calc(100% - $baseSize * 11);
+    width: calc(100% - #{$sMargin-canvas});
+    min-width: calc(100% - #{$sMargin-canvas});
+    max-width: calc(100% - #{$sMargin-canvas});
     height: auto;
     margin-top: $baseSize;
     margin-left: $baseSize * 11;
@@ -94,8 +99,23 @@
     @include display-flex();
     @include flex-wrap(nowrap);
   }
-  .CDB-Widget-canvasShadow.is-visible {
-    display: none;
+  .CDB-Widget-canvasShadow {
+    width: 60px;
+    height: auto;
+  }
+  .CDB-Widget-canvasShadow--top {
+    @include background-horizontal(#FFF, rgba(255, 255, 255, 0));
+    bottom: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 4px;
+    background-color: transparent;
+  }
+  .CDB-Widget-canvasShadow--bottom {
+    @include background-horizontal(rgba(255, 255, 255, 0), #FFF);
+    left: auto;
+    height: 100%;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 0;
   }
   .CDB-Widget-canvasInner {
     @include display-flex();
