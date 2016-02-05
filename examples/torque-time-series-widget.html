@@ -22,8 +22,8 @@
   <script>
     window.onload = function() {
       var cdbConfig = window.GLOBAL_CDB_CONFIG || {};
-      cdbConfig.maps_api_template = cdbConfig.maps_api_template || "http://localhost.lan:8181/user/{user}";
-      cdbConfig.user_name = cdbConfig.user_name || "orgowner";
+      cdbConfig.maps_api_template = cdbConfig.maps_api_template || "https://{user}.cartodb.com";
+      cdbConfig.user_name = cdbConfig.user_name || "documentation";
       var vizJSON = {
         "title": "Torque Time-Series Widget",
         "description": null,
@@ -38,7 +38,10 @@
             "type": "time-series",
             "layer_id": "9c14474e-d89a-49b2-b19b-7dce60f0a259",
             "options": {
-              "column": "end_at"
+              "column": "end_at",
+              "bins": 100,
+              "start": 1362009600,
+              "end": 1361750400
             }
           }, {
             "type": "category",
