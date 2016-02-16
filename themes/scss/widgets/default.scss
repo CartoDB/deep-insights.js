@@ -80,8 +80,11 @@
   .CDB-Widget {
     width: $mobileLayout;
     min-width: $mobileLayout;
-    border-right: 2px solid transparent;
+    border-left: 2px solid $cSecondaryBackground;
     border-bottom: 0;
+    &:first-child {
+      border-left: 0;
+    }
   }
   .CDB-Widget--timeSeries {
     width: 100%; // override default width
