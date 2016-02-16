@@ -184,27 +184,29 @@
 }
 .CDB-Dashboard-menuHeaderMobile {
   box-sizing: border-box;
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   left: 0;
   width: 100%;
-  height: 48px;
-  padding: 8px;
+  padding: 16px;
   background: $cBlue;
 
   .CDB-Dashboard-menuLogo {
     @include inline-block();
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     margin: 0 8px 0 0;
-    line-height: 32px;
+    line-height: 24px;
+    .CDB-IconFont {
+      font-size: 16px;
+    }
   }
   .CDB-Dashboard-menuMedia {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 32px;
+    top: 16px;
+    right: 16px;
+    width: 24px;
     margin: 0;
     transition: opacity 0.2s ease-in;
   }

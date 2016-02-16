@@ -116,11 +116,17 @@
   .CDB-Widget-header,
   .CDB-Widget-footer,
   .CDB-Widget-content {
-    margin-right: $sMargin-section / 3;
-    margin-left: $sMargin-section / 3;
+   /* margin-right: $sMargin-section / 3;
+    margin-left: $sMargin-section / 3;*/
+    margin-right: 16px;
+    margin-left: 16px;
   }
   .CDB-Widget-content--noSidesMargin {
     margin-right: 0;
     margin-left: 0;
   }
+  .CDB-Widget-content--histogram .CDB-Widget-filter {
+    margin-right: 0;
+    margin-left: 0;
+  } 
 }

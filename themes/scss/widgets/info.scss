@@ -14,3 +14,9 @@
     margin-right: 0;
   }
 }
+
+@include media-query-mobile() {
+  .CDB-Widget-infoDescription {
+    margin-right: $baseSize / 2;
+  }
+}
