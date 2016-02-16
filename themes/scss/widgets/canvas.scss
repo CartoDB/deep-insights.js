@@ -71,11 +71,12 @@
     width: $w;
     min-width: $w;
     max-width: $w;
-    height: auto;
+    //height: auto;
     margin-top: $baseSize;
     border-radius: 0;
     overflow: hidden;
     box-sizing: border-box;
+    max-height: 220px;
   }
   .CDB-Widget-canvas--withMenu {
     margin-left: $baseSize * 9;
@@ -107,8 +108,8 @@
     width: 100%;
     min-width: 100%;
     max-width: 100%;
-    height: auto;
-    min-height: auto;
+   height: auto;
+   //min-height: auto;
     margin-left: 0;
     margin-top: 0;
   }
@@ -117,5 +118,8 @@
   }
   .CDB-Map {
     border-radius: 0;
+  }
+  .CDB-Widget-canvasInner {
+    display: -webkit-box;
   }
 }
