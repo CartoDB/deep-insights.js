@@ -71,12 +71,10 @@
     width: $w;
     min-width: $w;
     max-width: $w;
-    //height: auto;
     margin-top: $baseSize;
     border-radius: 0;
     overflow: hidden;
     box-sizing: border-box;
-    max-height: 220px;
   }
   .CDB-Widget-canvas--withMenu {
     margin-left: $baseSize * 9;
@@ -105,13 +103,12 @@
 
 @include media-query-mobile() {
   .CDB-Widget-canvas {
+    top: auto;
     width: 100%;
     min-width: 100%;
     max-width: 100%;
-   height: auto;
-   //min-height: auto;
-    margin-left: 0;
     margin-top: 0;
+    margin-left: 0;
   }
   .CDB-Dashboard-canvas {
     padding: 0;

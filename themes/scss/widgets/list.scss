@@ -211,4 +211,12 @@
     display: inline-block;
     width: 180px;
   }
+  .CDB-Widget-listItem--fake {
+    margin-top: 0;
+  }
+  .CDB-Widget-content--noSidesMargin .CDB-Widget-listItem--fake {
+    margin-right: 0;
+    margin-left: 8px;
+    width: 160px;    
+  }
 }
