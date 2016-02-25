@@ -22,7 +22,8 @@ module.exports = cdb.core.View.extend({
     animationBarDelay: function (d, i) {
       return Math.random() * (100 + (i * 10));
     },
-    transitionType: 'elastic'
+    transitionType: 'elastic',
+    filter: [null, null]
   },
 
   initialize: function () {
@@ -664,7 +665,6 @@ module.exports = cdb.core.View.extend({
 
   _setupBrush: function () {
     var self = this;
-
     var brush = this.brush = d3.svg.brush().x(this.xScale);
 
     function onBrushEnd () {
@@ -713,6 +713,14 @@ module.exports = cdb.core.View.extend({
         self._selectRange(loPosition, hiPosition);
         self.trigger('on_brush_end', self.model.get('lo_index'), self.model.get('hi_index'));
       }
+    }
+
+    var filter = this.options.filter;
+    if (filter && filter.length && _.isNumber(filter[0]) && _.isNumber(filter[1])) {
+      this._onBrushStart();
+      this.brush.extent(filter);
+      this._onBrushMove();
+      onBrushEnd.bind(this.brush);
     }
 
     this.brush

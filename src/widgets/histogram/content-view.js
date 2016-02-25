@@ -96,6 +96,7 @@ module.exports = cdb.core.View.extend({
       if (this._isZoomed()) {
         this.zoomedData = this._dataviewModel.getData();
       } else {
+        this.mainData = this._dataviewModel.getData();
         this.histogramChartView.showShadowBars();
         if (this._originalData.isEmpty()) {
           this._originalData.reset(this._dataviewModel.getData());
@@ -127,9 +128,16 @@ module.exports = cdb.core.View.extend({
       template({
         title: this.model.get('title'),
         showStats: this.model.get('show_stats'),
-        itemsCount: !isDataEmpty ? data.length : '-'
+        itemsCount: !isDataEmpty ? data.length : '-',
+        nulls: formatter.formatNumber(this.model.get('nulls')),
+        min: formatter.formatNumber(this.model.get('min')),
+        avg: formatter.formatNumber(this.model.get('avg')),
+        max: formatter.formatNumber(this.model.get('max'))
       })
     );
+    // Force refresh buttons state.
+    this._onChangeFilterEnabled();
+    this._onChangeZoomEnabled();
 
     if (isDataEmpty) {
       this._addPlaceholder();
@@ -159,42 +167,52 @@ module.exports = cdb.core.View.extend({
   },
 
   _renderMainChart: function () {
-    this.histogramChartView = new HistogramChartView(({
-      margin: { top: 4, right: 4, bottom: 4, left: 4 },
-      hasShadowBards: true,
-      hasHandles: true,
-      hasAxisTip: true,
-      width: this.canvasWidth,
-      height: this.defaults.chartHeight,
-      data: this._dataviewModel.getData(),
-      originalData: this._originalData,
-      displayShadowBars: true
-    }));
+    if (!this.histogramChartView) {
+      this.histogramChartView = new HistogramChartView({
+        margin: { top: 4, right: 4, bottom: 4, left: 4 },
+        hasShadowBards: true,
+        hasHandles: true,
+        hasAxisTip: true,
+        width: this.canvasWidth,
+        height: this.defaults.chartHeight,
+        data: this._dataviewModel.getData(),
+        originalData: this._originalData,
+        displayShadowBars: true,
+        filter: this._isZoomed() ? [this.model.get('zoomedFilterLoBarIndex'), this.model.get('zoomedFilterHiBarIndex')] : [this.model.get('mainFilterLoBarIndex'), this.model.get('mainFilterHiBarIndex')]
+      });
+
+      this.addView(this.histogramChartView);
+      this.histogramChartView.bind('range_updated', this._onRangeUpdated, this);
+      this.histogramChartView.bind('on_brush_end', this._onBrushEnd, this);
+      this.histogramChartView.bind('hover', this._onValueHover, this);
+    }
 
     this.$('.js-content').append(this.histogramChartView.el);
-    this.addView(this.histogramChartView);
-
-    this.histogramChartView.bind('range_updated', this._onRangeUpdated, this);
-    this.histogramChartView.bind('on_brush_end', this._onBrushEnd, this);
-    this.histogramChartView.bind('hover', this._onValueHover, this);
     this.histogramChartView.render().show();
 
     this._updateStats();
   },
 
   _renderMiniChart: function () {
-    this.miniHistogramChartView = new HistogramChartView(({
-      className: 'CDB-Chart--mini',
-      margin: { top: 0, right: 4, bottom: 4, left: 4 },
-      height: 40,
-      showOnWidthChange: false,
-      data: this._dataviewModel.getData()
-    }));
+    if (!this.miniHistogramChartView) {
+      this.miniHistogramChartView = new HistogramChartView({
+        className: 'CDB-Chart--mini',
+        margin: { top: 0, right: 4, bottom: 4, left: 4 },
+        height: 40,
+        showOnWidthChange: false,
+        data: this._dataviewModel.getData(),
+        filter: [this.model.get('mainFilterLoBarIndex'), this.model.get('mainFilterHiBarIndex')]
+      });
+      this.addView(this.miniHistogramChartView);
+      this.miniHistogramChartView.bind('on_brush_end', this._onMiniRangeUpdated, this);
+    }
 
-    this.addView(this.miniHistogramChartView);
     this.$('.js-content').append(this.miniHistogramChartView.el);
-    this.miniHistogramChartView.bind('on_brush_end', this._onMiniRangeUpdated, this);
-    this.miniHistogramChartView.render();
+    if (this.model.get('zoom_enabled')) {
+      this.miniHistogramChartView.render().show();
+    } else {
+      this.miniHistogramChartView.render();
+    }
   },
 
   _setupBindings: function () {
@@ -242,6 +260,14 @@ module.exports = cdb.core.View.extend({
         data[loBarIndex].start,
         data[hiBarIndex - 1].end
       );
+
+      this.model.set({
+        minFilterZoomed: this.filter.get('min'),
+        maxFilterZoomed: this.filter.get('max'),
+        zoomedFilterLoBarIndex: loBarIndex,
+        zoomedFilterHiBarIndex: hiBarIndex
+      });
+
       this._updateStats();
     } else {
       console.error('Error accessing array bounds', loBarIndex, hiBarIndex, data);
@@ -272,6 +298,27 @@ module.exports = cdb.core.View.extend({
         data[loBarIndex].start,
         data[hiBarIndex - 1].end
       );
+
+      if (this.model.get('zoomed')) {
+        this.model.set({
+          minFilterZoomed: this.filter.get('min'),
+          maxFilterZoomed: this.filter.get('max'),
+          zoomedFilterLoBarIndex: loBarIndex,
+          zoomedFilterHiBarIndex: hiBarIndex
+        });
+      } else {
+        this.model.set({
+          minFilterMain: this.filter.get('min'),
+          maxFilterMain: this.filter.get('max'),
+          mainFilterLoBarIndex: loBarIndex,
+          mainFilterHiBarIndex: hiBarIndex,
+          minFilterZoomed: null,
+          maxFilterZoomed: null,
+          zoomedFilterLoBarIndex: null,
+          zoomedFilterHiBarIndex: null
+        });
+      }
+
       this._updateStats();
     } else {
       console.error('Error accessing array bounds', loBarIndex, hiBarIndex, data);
