@@ -21,17 +21,24 @@ module.exports = cdb.core.View.extend({
   },
 
   render: function () {
+    var acceptedCats = this.dataviewModel.filter.acceptedCategories.size();
+    var rejectedCats = this.dataviewModel.filter.rejectedCategories.size();
+    var areAllRejected = this.dataviewModel.filter.areAllRejected();
+    var totalCats = this.dataviewModel.getData().size();
+    var isLocked = this.widgetModel.isLocked();
+
     this.$el.html(
       template({
-        acceptedCats: this.dataviewModel.numberOfAcceptedCategories(),
-        rejectedCats: this.dataviewModel.numberOfRejectedCategories(),
-        areAllRejected: this.dataviewModel.filter.areAllRejected(),
-        isLocked: this.widgetModel.isLocked(),
-        canBeLocked: this.widgetModel.canBeLocked(),
-        totalLocked: this.widgetModel.lockedCategories.size(),
         isSearchEnabled: this.widgetModel.isSearchEnabled(),
         isSearchApplied: this.dataviewModel.isSearchApplied(),
-        totalCats: this.dataviewModel.getData().size()
+        isLocked: isLocked,
+        canBeLocked: this.widgetModel.canBeLocked(),
+        allSelected: (rejectedCats === 0 && acceptedCats === 0 && !areAllRejected),
+        canSelectAll: !isLocked && (rejectedCats > 0 || acceptedCats > 0 || areAllRejected),
+        noneSelected: areAllRejected || (!totalCats && !acceptedCats),
+        acceptedCats: acceptedCats,
+        totalLocked: this.widgetModel.lockedCategories.size(),
+        totalCats: totalCats
       })
     );
     return this;
@@ -47,8 +54,8 @@ module.exports = cdb.core.View.extend({
     this.add_related_model(this.dataviewModel);
 
     var f = this.dataviewModel.filter;
-    f.acceptedCategories.bind('change add remove', this.render, this);
-    f.rejectedCategories.bind('change add remove', this.render, this);
+    f.acceptedCategories.bind('add remove reset', this.render, this);
+    f.rejectedCategories.bind('add remove reset', this.render, this);
     this.add_related_model(f.rejectedCategories);
     this.add_related_model(f.acceptedCategories);
   },

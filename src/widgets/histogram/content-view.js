@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var cdb = require('cartodb.js');
+var Backbone = require('backbone');
 var formatter = require('../../formatter');
 var HistogramTitleView = require('./histogram-title-view');
 var HistogramChartView = require('./chart');
@@ -20,11 +21,12 @@ module.exports = cdb.core.View.extend({
   },
 
   events: {
-    'click .js-clear': '_clear',
+    'click .js-clear': '_resetWidget',
     'click .js-zoom': '_zoom'
   },
 
   initialize: function () {
+    this._originalData = new Backbone.Collection();
     this._dataviewModel = this.model.dataviewModel;
     this.filter = this._dataviewModel.filter;
     this.lockedByUser = false;
@@ -32,13 +34,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _initViews: function () {
-    var titleView = new HistogramTitleView({
-      widgetModel: this.model,
-      dataviewModel: this._dataviewModel
-    });
-
-    this.$('.js-title').html(titleView.render().el);
-    this.addView(titleView);
+    this._initTitleView();
 
     var dropdown = new DropdownView({
       target: this.$('.js-actions'),
@@ -57,6 +53,16 @@ module.exports = cdb.core.View.extend({
     this._renderMainChart();
   },
 
+  _initTitleView: function () {
+    var titleView = new HistogramTitleView({
+      widgetModel: this.model,
+      dataviewModel: this._dataviewModel
+    });
+
+    this.$('.js-title').append(titleView.render().el);
+    this.addView(titleView);
+  },
+
   _initBinds: function () {
     this._dataviewModel.once('change:data', this._onFirstLoad, this);
     this.model.bind('change:collapsed', this.render, this);
@@ -64,28 +70,17 @@ module.exports = cdb.core.View.extend({
 
   _onFirstLoad: function () {
     this.render();
-    this._storeBounds();
 
-    this._dataviewModel.bind('change', this._onChangeModel, this);
+    this._dataviewModel.bind('change:data', this._onHistogramDataChanged, this);
     this.add_related_model(this._dataviewModel);
     this._dataviewModel.fetch();
-  },
-
-  _storeBounds: function () {
-    var data = this._dataviewModel.getData();
-    if (data && data.length > 0) {
-      this.start = data[0].start;
-      this.end = data[data.length - 1].end;
-      this.binsCount = data.length;
-      this._dataviewModel.set({ start: this.start, end: this.end, bins: this.binsCount });
-    }
   },
 
   _isZoomed: function () {
     return this.model.get('zoomed');
   },
 
-  _onChangeModel: function () {
+  _onHistogramDataChanged: function () {
     // When the histogram is zoomed, we don't need to rely
     // on the change url to update the histogram
     // TODO the widget should not know about the URL… could this state be got from the dataview model somehow?
@@ -102,7 +97,10 @@ module.exports = cdb.core.View.extend({
         this.zoomedData = this._dataviewModel.getData();
       } else {
         this.histogramChartView.showShadowBars();
-        this.originalData = this._dataviewModel.getData();
+        if (this._originalData.isEmpty()) {
+          this._originalData.reset(this._dataviewModel.getData());
+        }
+        this.miniHistogramChartView.replaceData(this._dataviewModel.getData());
       }
       this.histogramChartView.replaceData(this._dataviewModel.getData());
     }
@@ -127,15 +125,17 @@ module.exports = cdb.core.View.extend({
 
     this.$el.html(
       template({
-        title: this._dataviewModel.get('title'),
+        title: this.model.get('title'),
+        showStats: this.model.get('show_stats'),
         itemsCount: !isDataEmpty ? data.length : '-'
       })
     );
 
     if (isDataEmpty) {
       this._addPlaceholder();
+      this._initTitleView();
     } else {
-      this.originalData = this._dataviewModel.getData();
+      this._originalData.reset(this._dataviewModel.getData());
       this._setupBindings();
       this.$el.toggleClass('is-collapsed', !!this.model.get('collapsed'));
       this._initViews();
@@ -146,7 +146,7 @@ module.exports = cdb.core.View.extend({
 
   _unsetRange: function () {
     this.unsettingRange = false;
-    this.histogramChartView.replaceData(this.originalData);
+    this.histogramChartView.replaceData(this._dataviewModel.getData());
     this.model.set({ lo_index: null, hi_index: null });
 
     if (!this._isZoomed()) {
@@ -161,13 +161,13 @@ module.exports = cdb.core.View.extend({
   _renderMainChart: function () {
     this.histogramChartView = new HistogramChartView(({
       margin: { top: 4, right: 4, bottom: 4, left: 4 },
-      hasShadowBards: true,
       hasHandles: true,
       hasAxisTip: true,
       width: this.canvasWidth,
       height: this.defaults.chartHeight,
       data: this._dataviewModel.getData(),
-      shadowData: this._dataviewModel.getData()
+      originalData: this._originalData,
+      displayShadowBars: true
     }));
 
     this.$('.js-content').append(this.histogramChartView.el);
@@ -184,7 +184,7 @@ module.exports = cdb.core.View.extend({
   _renderMiniChart: function () {
     this.miniHistogramChartView = new HistogramChartView(({
       className: 'CDB-Chart--mini',
-      margin: { top: 0, right: 0, bottom: 4, left: 4 },
+      margin: { top: 0, right: 4, bottom: 4, left: 4 },
       height: 40,
       showOnWidthChange: false,
       data: this._dataviewModel.getData()
@@ -197,6 +197,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _setupBindings: function () {
+    this._dataviewModel.bind('change:bins', this._onChangeBins, this);
     this.model.bind('change:zoomed', this._onChangeZoomed, this);
     this.model.bind('change:zoom_enabled', this._onChangeZoomEnabled, this);
     this.model.bind('change:filter_enabled', this._onChangeFilterEnabled, this);
@@ -233,7 +234,7 @@ module.exports = cdb.core.View.extend({
     this._clearTooltip();
     this.histogramChartView.removeSelection();
 
-    var data = this.originalData;
+    var data = this._originalData.toJSON();
 
     if (loBarIndex >= 0 && loBarIndex < data.length && (hiBarIndex - 1) >= 0 && (hiBarIndex - 1) < data.length) {
       this.filter.setRange(
@@ -301,6 +302,16 @@ module.exports = cdb.core.View.extend({
     this.$('.js-filter').toggleClass('is-hidden', !this.model.get('filter_enabled'));
   },
 
+  _onChangeBins: function () {
+    this._originalData.reset([]); // Clean originalData
+    this.model.set({
+      zoom_enabled: false,
+      filter_enabled: false,
+      lo_index: null,
+      hi_index: null
+    });
+  },
+
   _onChangeZoomEnabled: function () {
     this.$('.js-zoom').toggleClass('is-hidden', !this.model.get('zoom_enabled'));
   },
@@ -352,7 +363,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _updateStats: function () {
-    var data = this.originalData;
+    var data = this._dataviewModel.getData();
 
     if (this._isZoomed()) {
       data = this.zoomedData;
@@ -407,42 +418,8 @@ module.exports = cdb.core.View.extend({
     if (this.model.get('zoomed')) {
       this._onZoomIn();
     } else {
-      this._onZoomOut();
+      this._resetWidget();
     }
-  },
-
-  _onZoomIn: function () {
-    this._showMiniRange();
-    this.histogramChartView.expand(4);
-
-    this.histogramChartView.removeShadowBars();
-
-    this._dataviewModel.set({ start: null, end: null, bins: null, own_filter: 1 });
-    this._dataviewModel.fetch();
-    this.lockedByUser = false;
-  },
-
-  _zoom: function () {
-    this.lockedByUser = true;
-    this.model.set({ zoomed: true, zoom_enabled: false });
-    this.histogramChartView.removeSelection();
-  },
-
-  _onZoomOut: function () {
-    this.lockedByUser = true;
-    this.lockZoomedData = false;
-    this.unsettingRange = true;
-
-    this._dataviewModel.set({ start: this.start, end: this.end, bins: this.binsCount, own_filter: null });
-
-    this.model.set({ zoom_enabled: false, filter_enabled: false, lo_index: null, hi_index: null });
-
-    this.filter.unsetRange();
-
-    this.histogramChartView.contract(this.defaults.chartHeight);
-    this.histogramChartView.resetIndexes();
-
-    this.miniHistogramChartView.hide();
   },
 
   _showMiniRange: function () {
@@ -453,9 +430,40 @@ module.exports = cdb.core.View.extend({
     this.miniHistogramChartView.show();
   },
 
-  _clear: function () {
+  _zoom: function () {
+    this.model.set({ zoomed: true, zoom_enabled: false });
     this.histogramChartView.removeSelection();
-    this.model.set({ zoomed: false, zoom_enabled: false });
-    this.model.trigger('change:zoomed');
+  },
+
+  _onZoomIn: function () {
+    this.lockedByUser = false;
+    this._showMiniRange();
+    this.histogramChartView.updateYScale();
+    this.histogramChartView.expand(4);
+    this.histogramChartView.removeShadowBars();
+    this._dataviewModel.enableFilter();
+    this._dataviewModel.fetch();
+  },
+
+  _resetWidget: function () {
+    this.lockedByUser = true;
+    this.lockZoomedData = false;
+    this.unsettingRange = true;
+    this.model.set({
+      zoomed: false,
+      zoom_enabled: false,
+      filter_enabled: false,
+      lo_index: null,
+      hi_index: null
+    });
+    this._dataviewModel.disableFilter();
+
+    this.filter.unsetRange();
+
+    this.histogramChartView.resetYScale();
+    this.histogramChartView.contract(this.defaults.chartHeight);
+    this.histogramChartView.resetIndexes();
+    this.histogramChartView.removeSelection();
+    this.miniHistogramChartView.hide();
   }
 });

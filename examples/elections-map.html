@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Deep-Insights.js | Populated Places</title>
+    <meta name=viewport content="width=device-width initial-scale=1">
+    <link rel="stylesheet" href="../dist/themes/css/deep-insights.css" />
+    <script src="../dist/deep-insights.uncompressed.js"></script>
+    <style type="text/css">
+      html, body {
+        position:relative;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dashboard"></div>
+
+    <script>
+      window.onload = function() {
+        var vizJSON = {
+          "title": "Elections maps",
+          "description": "La opacidad del color depende de el porcentaje de votos conseguido / Opacity varies by percentage of votes obtained",
+          "user": {
+            "fullname": "Emilio García",
+            "avatar_url": "https://s3.amazonaws.com/com.cartodb.users-assets.production/production/piensaenpixel/assets/20150507074635Captura%20de%20pantalla%202015-05-07%20a%20la%28s%29%2009.46.28.png"
+          },
+          "updated_at": "2015-10-26T11:50:30+00:00",
+
+          "widgets": [
+            {
+              "id": "min-population-formula",
+              "type": "formula",
+              "title": "Min population (disabled sync)",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "sync_on_data_change": false,
+                "sync_on_bbox_change": false,
+                "operation": "min",
+                "suffix": " people",
+                "description": "This is a test for formula description",
+                "show_stats": true
+              }
+            }, {
+              "id": "max-population-formula",
+              "type": "formula",
+              "title": "Max population",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "operation": "max"
+              }
+            }, {
+              "id": "avg-population-formula",
+              "type": "formula",
+              "title": "Avg population",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "operation": "avg"
+              }
+            }, {
+              "id": "total-population-formula",
+              "type": "formula",
+              "title": "Total population",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "operation": "sum"
+              }
+            }, {
+              "id": "places-count-formula",
+              "type": "formula",
+              "title": "# places",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "operation": "count"
+              }
+            }, {
+              "id": "amount-spent-histogram",
+              "type": "histogram",
+              "title": "Amount spent",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "bins": 10,
+                "show_stats": true
+              }
+            }, {
+              "id": "population-histogram",
+              "type": "histogram",
+              "title": "Population",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "pop_max",
+                "bins": 10
+              }
+            }, {
+              "id": "country-category",
+              "type": "category",
+              "title": "Country",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "adm0_a3",
+                "aggregation": "count",
+                "show_stats": true
+              },
+            }, {
+              "id": "rank-category",
+              "type": "category",
+              "title": "Rank category",
+              "layer_id": "4d82e8df-f21b-4225-b776-61b1bdffde6c",
+              "options": {
+                "column": "labelrank",
+                "aggregation": "count"
+              }
+            }
+          ],
+
+          "datasource": {
+            "user_name": "editor3",
+            "maps_api_template": "https://{user}.cartodb.com:443",
+            "force_cors": true, // This is sometimes set in the editor,
+            "stat_tag": "84ec6844-4b4b-11e5-9c1d-080027880ca6"
+          },
+
+          "id": "84ec6844-4b4b-11e5-9c1d-080027880ca6",
+          "version": "0.1.0",
+          "likes": 0,
+          "scrollwheel": false,
+          "legends": true,
+          "url": null,
+          "map_provider": "leaflet",
+          "bounds": [
+            [
+              -10.3967,
+              -80.6479
+            ],
+            [
+              60.2137,
+              45.1867
+            ]
+          ],
+          "center": "[40.7127, -74.0059]",
+          "zoom": 4,
+          "updated_at": "2015-10-26T11:50:30+00:00",
+layers: [
+  {
+    options: {
+    type: "Plain",
+    base_type: "plain",
+    className: "plain",
+    color: "#f5f5f5",
+    image: "",
+    maxZoom: 32,
+    id: "1850e0d2-828f-4eca-bdc4-b3025f44036c",
+    order: 0
+    },
+    infowindow: null,
+    tooltip: null,
+    id: "1850e0d2-828f-4eca-bdc4-b3025f44036c",
+    order: 0,
+    type: "background"
+    },
+    {
+    type: "layergroup",
+    options: {
+    user_name: "piensaenpixel",
+    maps_api_template: "https://{user}.cartodb.com:443",
+    sql_api_template: "https://{user}.cartodb.com:443",
+    tiler_protocol: "http",
+    tiler_domain: "cartodb.com",
+    tiler_port: "80",
+    sql_api_protocol: "http",
+    sql_api_domain: "cartodb.com",
+    sql_api_endpoint: "/api/v2/sql",
+    sql_api_port: 80,
+    filter: "mapnik",
+    layer_definition: {
+    stat_tag: "2016460c-a7c5-11e5-90ff-0e98b61680bf",
+    version: "1.0.1",
+    layers: [
+    {
+    id: "28a46b33-9adf-409f-8ec0-bc7513afb726",
+    type: "CartoDB",
+    infowindow: {
+    fields: [ ],
+    template_name: "table/views/infowindow_light",
+    template: "<div class="cartodb-popup v2"> <a href="#close" class="cartodb-popup-close-button close">x</a> <div class="cartodb-popup-content-wrapper"> <div class="cartodb-popup-content"> {{#content.fields}} {{#title}}<h4>{{title}}</h4>{{/title}} {{#value}} <p {{#type}}class="{{ type }}"{{/type}}>{{{ value }}}</p> {{/value}} {{^value}} <p class="empty">null</p> {{/value}} {{/content.fields}} </div> </div> <div class="cartodb-popup-tip-container"></div> </div> ",
+    alternative_names: { },
+    width: 226,
+    maxHeight: 180
+    },
+    tooltip: {
+    fields: [ ],
+    template_name: "tooltip_light",
+    template: "<div class="cartodb-tooltip-content-wrapper"> <div class="cartodb-tooltip-content"> {{#fields}} {{#title}} <h4>{{title}}</h4> {{/title}} <p>{{{ value }}}</p> {{/fields}} </div> </div>",
+    alternative_names: { },
+    maxHeight: 180
+    },
+    legend: {
+    type: "none",
+    show_title: false,
+    title: "",
+    template: "",
+    visible: true
+    },
+    order: 1,
+    visible: true,
+    options: {
+    sql: "select * from spain",
+    layer_name: "spain",
+    cartocss: "/** simple visualization */ #spain{ polygon-fill: #FFFFFF; polygon-opacity: 1; line-color: #FFF; line-width: 0.5; line-opacity: 1; }",
+    cartocss_version: "2.1.1",
+    interactivity: "cartodb_id",
+    table_name: """."
+    }
+    },
+    {
+    id: "4ddc1749-9ce2-4ce8-a031-187c7415bce0",
+    type: "CartoDB",
+    infowindow: {
+    fields: [
+    {
+    position: 1.7976931348623157e+308,
+    name: "cmun",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "codigo_municipio",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "codigo_numero",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "comunidad",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "cpro",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "dc",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "edad_media",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ganador_2011",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1977",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1977_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1982",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1982_2015",
+    title: true
+    },
+    {
+    position: 1,
+    name: "nombre",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ohio",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ohio_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "opacity_ganador",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "participacion",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "partido_ganador_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "poblacion",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_2011",
+    title: true
+    },
+    {
+    position: 2,
+    name: "porcentaje_c_s",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_ganador",
+    title: true
+    },
+    {
+    position: 4,
+    name: "porcentaje_iu",
+    title: true
+    },
+    {
+    position: 5,
+    name: "porcentaje_podemos_confluencias",
+    title: true
+    },
+    {
+    position: 6,
+    name: "porcentaje_pp",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_pp_psoe",
+    title: true
+    },
+    {
+    position: 7,
+    name: "porcentaje_psoe",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "provincia",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "rural_o_urbano",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "sigla_ganador_2011",
+    title: true
+    }
+    ],
+    template_name: "",
+    template: "<div class="cartodb-popup v2"> <a href="#close" class="cartodb-popup-close-button close">x</a> <div class="cartodb-popup-content-wrapper"> <div class="cartodb-popup-content" style="height: 180px !important; max-height: 180px!important;"> <p><strong>{{nombre}}</strong></p> <ol style="list-style-type:none; margin: 10px 0 0 0; padding: 0 12px 0 0"> <li> Ciudadanos · {{porcentaje_c_s}}% <div style="background-color:#e5e5e5;width:100%;height:2px;border-radius:40px;"> <span style="height: 2px;vertical-align: top;border-radius: 40px;display: inline-block;background:#ef7a36;width:{{porcentaje_c_s}}%;"></span> </div> </li> <li style="margin-top:8px;"> IU · {{porcentaje_iu}}% <div style="background-color:#e5e5e5;width:100%;height:2px;border-radius:40px;"> <span style="height: 2px;vertical-align: top;border-radius: 40px;display: inline-block;background:#8f2222;width:{{porcentaje_iu}}%;"></span> </div> </li> <li style="margin-top:8px;"> Podemos · {{porcentaje_podemos_confluencias}}% <div style="background-color:#e5e5e5;width:100%;height:2px;border-radius:40px;"> <span style="height: 2px;vertical-align: top;border-radius: 40px;display: inline-block;background:#9c489e;width:{{porcentaje_podemos_confluencias}}%;"></span> </div> </li> <li style="margin-top:8px;"> PP · {{porcentaje_pp}}% <div style="background-color:#e5e5e5;width:100%;height:2px;border-radius:40px;"> <span style="height: 2px;vertical-align: top;border-radius: 40px;display: inline-block;background:#0194d9;width:{{porcentaje_pp}}%;"></span> </div> </li> <li style="margin-top:8px;"> PSOE · {{porcentaje_psoe}}% <div style="background-color:#e5e5e5;width:100%;height:2px;border-radius:40px;"> <span style="height: 2px;vertical-align: top;border-radius: 40px;display: inline-block;background:#f82433;width:{{porcentaje_psoe}}%;"></span> </div> </li> </ol> </div> </div> <div class="cartodb-popup-tip-container"></div> </div>",
+    alternative_names: { },
+    width: 226,
+    maxHeight: 180
+    },
+    tooltip: {
+    fields: [
+    {
+    position: 1.7976931348623157e+308,
+    name: "cmun",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "codigo_municipio",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "codigo_numero",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "comunidad",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "cpro",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "dc",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "edad_media",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ganador_2011",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1977",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1977_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1982",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "mismo_ganador_1982_2015",
+    title: true
+    },
+    {
+    position: 12,
+    name: "nombre",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ohio",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "ohio_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "opacity_ganador",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "participacion",
+    title: true
+    },
+    {
+    position: 17,
+    name: "partido_ganador_2015",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "poblacion",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_2011",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_c_s",
+    title: true
+    },
+    {
+    position: 21,
+    name: "porcentaje_ganador",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_iu",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_podemos_confluencias",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_pp",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_pp_psoe",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "porcentaje_psoe",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "provincia",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "rural_o_urbano",
+    title: true
+    },
+    {
+    position: 1.7976931348623157e+308,
+    name: "sigla_ganador_2011",
+    title: true
+    }
+    ],
+    template_name: "",
+    template: "<div class="cartodb-tooltip-content-wrapper"> <div class="cartodb-tooltip-content"> <p><strong>{{nombre}}</strong></p> <h4><strong>Partido Ganador</strong></h4> <p>{{partido_ganador_2015}} - {{porcentaje_ganador}}%</p> </div> </div>",
+    alternative_names: { },
+    maxHeight: 180
+    },
+    legend: {
+    type: "none",
+    show_title: false,
+    title: "",
+    template: "",
+    visible: true,
+    items: [
+    {
+    name: "Left label",
+    visible: true,
+    value: "29.78",
+    type: "text"
+    },
+    {
+    name: "Right label",
+    visible: true,
+    value: "100.00",
+    type: "text"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#FFFFB2",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#FED976",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#FEB24C",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#FD8D3C",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#FC4E2A",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#E31A1C",
+    type: "color"
+    },
+    {
+    name: "Color",
+    visible: true,
+    value: "#B10026",
+    type: "color"
+    }
+    ]
+    },
+    order: 2,
+    visible: true,
+    options: {
+    sql: "select * from public",
+    layer_name: "public",
+    cartocss: "/** choropleth visualization */ #public{ polygon-fill: #cccccc; line-color: #FFF; line-width: 0.25; line-opacity: 1; [partido_ganador_2015 = 'PP'] { polygon-fill: #0194d9; } [partido_ganador_2015 = 'PSOE'] { polygon-fill: #f82433; } [partido_ganador_2015 = 'PODEMOS'] { polygon-fill: #9c489e; } [partido_ganador_2015 = 'PODEMOS-COMPROMÍS'] { polygon-fill: #9c489e; } [partido_ganador_2015 = 'EN COMÚ'] { polygon-fill: #9c489e; } [partido_ganador_2015 = 'EAJ-PNV'] { polygon-fill: #00914a; } [partido_ganador_2015 = "C's"] { polygon-fill: #ef7a36; } [partido_ganador_2015 = "IU-UP"] { polygon-fill: #8f2222; } [partido_ganador_2015 = "EH BILDU"] { polygon-fill: #c3cf34; } [partido_ganador_2015 = "EB"] { polygon-fill: #c3cf34; } [partido_ganador_2015 = "ERC-CATSI"] { polygon-fill: #f79f21; } [partido_ganador_2015 = "ERC-CATSI"] { polygon-fill: #f79f21; } [partido_ganador_2015 = "MÉS"] { polygon-fill: #999999; } [partido_ganador_2015 = "NÓS"] { polygon-fill: #9cc1e6; } [partido_ganador_2015 = "UNIO"] { polygon-fill: #6699ff; } [partido_ganador_2015 = "DL"] { polygon-fill: #19204b; } [partido_ganador_2015 = "GBAI"] { polygon-fill: #e68272; } [partido_ganador_2015 = "CC"] { polygon-fill: #ffff96; } [partido_ganador_2015 = "EN MAREA"] { polygon-fill: #33ccff; } } #public [ porcentaje_ganador <= 100] { polygon-opacity: 1; } #public [ porcentaje_ganador <= 95] { polygon-opacity: .95; } #public [ porcentaje_ganador <= 90] { polygon-opacity: .9; } #public [ porcentaje_ganador <= 85] { polygon-opacity: .85; } #public [ porcentaje_ganador <= 80] { polygon-opacity: .8; } #public [ porcentaje_ganador <= 75] { polygon-opacity: .75; } #public [ porcentaje_ganador <= 70] { polygon-opacity: .7; } #public [ porcentaje_ganador <= 65] { polygon-opacity: .65; } #public [ porcentaje_ganador <= 60] { polygon-opacity: .6; } #public [ porcentaje_ganador <= 55] { polygon-opacity: .55; } #public [ porcentaje_ganador <= 50] { polygon-opacity: .5; } #public [ porcentaje_ganador <= 45] { polygon-opacity: .45; } #public [ porcentaje_ganador <= 40] { polygon-opacity: .4; } #public [ porcentaje_ganador <= 35] { polygon-opacity: .35; } #public [ porcentaje_ganador <= 30] { polygon-opacity: .3; } #public [ porcentaje_ganador <= 25] { polygon-opacity: .25; } #public [ porcentaje_ganador <= 20] { polygon-opacity: .2; } #public [ porcentaje_ganador <= 15] { polygon-opacity: .15; } #public [ porcentaje_ganador <= 10] { polygon-opacity: .1; } #public [ porcentaje_ganador <= 5] { polygon-opacity: .05; } #public [ porcentaje_ganador = 0] { polygon-opacity: 0; }",
+    cartocss_version: "2.1.1",
+    interactivity: "cartodb_id,cmun,codigo_municipio,codigo_numero,comunidad,cpro,dc,edad_media,ganador_2011,mismo_ganador_1977,mismo_ganador_1977_2015,mismo_ganador_1982,mismo_ganador_1982_2015,nombre,ohio,ohio_2015,opacity_ganador,participacion,partido_ganador_2015,poblacion,porcentaje_2011,porcentaje_c_s,porcentaje_ganador,porcentaje_iu,porcentaje_podemos_confluencias,porcentaje_pp,porcentaje_pp_psoe,porcentaje_psoe,provincia,rural_o_urbano,sigla_ganador_2011",
+    table_name: """."
+    }
+    },
+    {
+    id: "11d31d08-7035-446a-9bdb-424ae9d0727d",
+    type: "CartoDB",
+    infowindow: {
+    fields: [ ],
+    template_name: "table/views/infowindow_light",
+    template: "<div class="cartodb-popup v2"> <a href="#close" class="cartodb-popup-close-button close">x</a> <div class="cartodb-popup-content-wrapper"> <div class="cartodb-popup-content"> {{#content.fields}} {{#title}}<h4>{{title}}</h4>{{/title}} {{#value}} <p {{#type}}class="{{ type }}"{{/type}}>{{{ value }}}</p> {{/value}} {{^value}} <p class="empty">null</p> {{/value}} {{/content.fields}} </div> </div> <div class="cartodb-popup-tip-container"></div> </div> ",
+    alternative_names: { },
+    width: 226,
+    maxHeight: 180
+    },
+    tooltip: {
+    fields: [ ],
+    template_name: "tooltip_light",
+    template: "<div class="cartodb-tooltip-content-wrapper"> <div class="cartodb-tooltip-content"> {{#fields}} {{#title}} <h4>{{title}}</h4> {{/title}} <p>{{{ value }}}</p> {{/fields}} </div> </div>",
+    alternative_names: { },
+    maxHeight: 180
+    },
+    legend: {
+    type: "none",
+    show_title: false,
+    title: "",
+    template: "",
+    visible: true
+    },
+    order: 3,
+    visible: true,
+    options: {
+    sql: "select * from spain",
+    layer_name: "spain",
+    cartocss: "/** simple visualization */ #spain{ polygon-fill: #FF6600; polygon-opacity: 0; line-color: #FFF; line-width: 0.5; line-opacity: 1; [zoom >= 8] { line-width: 1; } [zoom >= 10] { line-width: 1.5; } }",
+    cartocss_version: "2.1.1",
+    interactivity: "cartodb_id",
+    table_name: """."
+    }
+    }
+    ]
+    },
+    attribution: ""
+    }
+  }
+],
+          "overlays": [
+            {
+              "type": "search",
+              "order": 3,
+              "options": {
+                "display": true,
+                "x": 60,
+                "y": 20
+              },
+              "template": ""
+            },
+            {
+              "type": "zoom",
+              "order": 6,
+              "options": {
+                "display": true,
+                "x": 20,
+                "y": 20
+              },
+            "template": "<div class=\"CDB-Overlay\"><button class=\"CDB-Zoom-action CDB-Zoom-action--out js-zoomOut\"></button><button class=\"CDB-Zoom-action CDB-Zoom-action--in js-zoomIn\"></button></div><div class=\"CDB-Zoom-info js-zoomInfo\">1</div>"
+          },
+            {
+              "type": "loader",
+              "order": 8,
+              "options": {
+                "display": true,
+                "x": 20,
+                "y": 150
+              },
+              "template": ""
+            }
+          ],
+          "prev": null,
+          "next": null,
+          "transition_options": {
+            "time": 0
+          }
+        };
+
+        var dashboard = cartodb.deepInsights.createDashboard('#dashboard', vizJSON, {
+          no_cdn: false,
+          cartodb_logo: false
+        });
+        dashboard.vis.done(function() {
+            window.dashboard = dashboard
+          })
+          .error(function(err) {
+            console.error(err);
+          });
+
+        console.info('first widget is disabled on start, run the following the dev console to enable it:',
+        'dashboard.widgets._widgetsCollection.at(0).update({sync_on_data_change: true, sync_on_bbox_change: true, title: "Min population"})')
+      }
+    </script>
+  </body>
+</html>

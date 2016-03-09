@@ -19,6 +19,7 @@ describe('widgets/formula/content-view', function () {
     this.view = new FormulaWidgetContent({
       model: this.model
     });
+    this.view.render();
   });
 
   it('should render the formula', function () {
@@ -32,10 +33,26 @@ describe('widgets/formula/content-view', function () {
     expect(this.view.$('.js-value').text()).toBe('123');
   });
 
+  it('should render description if available', function () {
+    this.dataviewModel.set('data', 123);
+    expect(this.view.$('.js-description').length).toBe(0);
+    this.model.set('description', 'hello');
+    this.view.render();
+    expect(this.view.$('.js-description').length).toBe(1);
+    expect(this.view.$('.js-description').text()).toBe('hello');
+  });
+
   it('should not disable dataviewModel when it is collapsed', function () {
     this.model.set('collapsed', true);
     expect(this.dataviewModel.get('enabled')).toBeTruthy();
     this.dataviewModel.set('data', 67);
     expect(this.view.$('.js-value').text()).toBe('67');
+  });
+
+  it('should render formula stats if show_stats is enabled', function () {
+    expect(this.view.$('.CDB-Widget-info').length).toBe(0);
+    this.model.set('show_stats', true);
+    this.view.render();
+    expect(this.view.$('.CDB-Widget-info').length).toBe(1);
   });
 });

@@ -1,4 +1,5 @@
 var specHelper = require('../../spec-helper');
+var _ = require('underscore');
 var CategoryWidgetModel = require('../../../src/widgets/category/category-widget-model');
 var CategoryContentView = require('../../../src/widgets/category/content-view');
 
@@ -20,8 +21,9 @@ describe('widgets/category/content-view', function () {
     this.renderResult = this.view.render();
   });
 
-  it('should render ifine', function () {
+  it('should render fine', function () {
     expect(this.renderResult).toBe(this.view);
+    expect(_.size(this.view._subviews)).toBe(7);
   });
 
   afterEach(function () {

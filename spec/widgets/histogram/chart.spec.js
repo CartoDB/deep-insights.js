@@ -44,7 +44,7 @@ describe('widgets/histogram/chart', function () {
       hasHandles: true,
       height: 100,
       data: this.data,
-      shadowData: this.data,
+      displayShadowBars: true,
       xAxisTickFormat: function (d, i) {
         return d;
       }
@@ -161,6 +161,25 @@ describe('widgets/histogram/chart', function () {
       this.view.show();
       this.view.model.set({ data: genHistogramData(20) });
       expect(this.view.refresh).toHaveBeenCalled();
+    });
+
+    describe('should allow to manage the y scale', function () {
+      beforeEach(function () {
+        this.originalScale = this.view.yScale;
+        this.view.model.set('data', genHistogramData(10));
+      });
+
+      it('should calculate the y scale on request', function () {
+        expect(this.view.yScale).toEqual(this.originalScale);
+
+        this.view.updateYScale();
+        expect(this.view.yScale).not.toEqual(this.originalScale);
+      });
+
+      it('should restore the y scale on request', function () {
+        this.view.resetYScale();
+        expect(this.view.yScale).toEqual(this.originalScale);
+      });
     });
   });
 });

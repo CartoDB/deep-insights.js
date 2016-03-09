@@ -45,7 +45,8 @@ module.exports = cdb.core.View.extend({
         return (i * 3);
       },
       height: this.defaults.histogramChartHeight,
-      data: this.model.getData()
+      data: this.model.getData(),
+      displayShadowBars: true
     });
     this.addView(this._chartView);
     this.$el.append(this._chartView.render().el);
@@ -59,6 +60,8 @@ module.exports = cdb.core.View.extend({
   _onChangeData: function () {
     if (this._chartView) {
       this._chartView.replaceData(this.model.getData());
+      this._chartView.updateXScale();
+      this._chartView.updateYScale();
     }
   },
 

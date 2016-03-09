@@ -26,6 +26,8 @@ module.exports = cdb.core.View.extend({
   },
 
   initialize: function () {
+    this._originalData = this.options.originalData;
+
     if (!_.isNumber(this.options.height)) throw new Error('height is required');
 
     _.bindAll(this, '_selectBars', '_adjustBrushHandles', '_onBrushMove', '_onBrushStart', '_onMouseMove', '_onMouseOut');
@@ -88,6 +90,7 @@ module.exports = cdb.core.View.extend({
     var labelsMargin = this.model.get('showLabels')
       ? this.options.labelsMargin
       : 0;
+
     return this.model.get('height') - m.top - m.bottom - labelsMargin;
   },
 
@@ -208,6 +211,7 @@ module.exports = cdb.core.View.extend({
 
   _onBrushStart: function () {
     this.chart.classed('is-selectable', true);
+    this._axis.classed('is-disabled', true);
   },
 
   _onChangeDragging: function () {
@@ -243,8 +247,6 @@ module.exports = cdb.core.View.extend({
   _updateAxisTipOpacity: function (className) {
     if (this.model.get('dragging')) {
       this._showAxisTip(className);
-    } else {
-      this._hideAxisTip(className);
     }
   },
 
@@ -311,7 +313,6 @@ module.exports = cdb.core.View.extend({
     this._setupDimensions();
     this._calcBarWidth();
     this._generateChartContent();
-    this._removeShadowBars();
     this._generateShadowBars();
   },
 
@@ -321,7 +322,6 @@ module.exports = cdb.core.View.extend({
     this._generateAxis();
     this._updateChart();
 
-    this._generateShadowBars();
     this.chart.select('.CDB-Chart-handles').moveToFront();
     this.chart.select('.Brush').moveToFront();
   },
@@ -345,10 +345,12 @@ module.exports = cdb.core.View.extend({
   _removeBrush: function () {
     this.chart.selectAll('.Brush').remove();
     this.chart.classed('is-selectable', false);
+    this._axis.classed('is-disabled', false);
   },
 
   _removeLines: function () {
     this.chart.select('.CDB-Chart-lines').remove();
+    this.chart.select('.CDB-Chart-line--bottom').remove();
   },
 
   _removeChartContent: function () {
@@ -366,6 +368,7 @@ module.exports = cdb.core.View.extend({
     this._generateBars();
     this._generateHandles();
     this._setupBrush();
+    this._generateBottomLine();
   },
 
   _generateLines: function () {
@@ -397,21 +400,22 @@ module.exports = cdb.core.View.extend({
     lines.append('g')
       .attr('class', 'y')
       .selectAll('.CDB-Chart-line')
-      .data(this.horizontalRange)
+      .data(this.horizontalRange.slice(0, this.horizontalRange.length - 1))
       .enter().append('svg:line')
       .attr('class', 'CDB-Chart-line')
       .attr('x1', 0)
       .attr('y1', function (d) { return d; })
       .attr('x2', this.chartWidth())
       .attr('y2', function (d) { return d; });
+  },
 
-    this.bottomLine = lines
-      .append('line')
+  _generateBottomLine: function () {
+    this.chart.append('line')
       .attr('class', 'CDB-Chart-line CDB-Chart-line--bottom')
       .attr('x1', 0)
-      .attr('y1', this.chartHeight())
+      .attr('y1', this.chartHeight() - 1)
       .attr('x2', this.chartWidth() - 1)
-      .attr('y2', this.chartHeight());
+      .attr('y2', this.chartHeight() - 1);
   },
 
   _setupD3Bindings: function () { // TODO: move to a helper
@@ -437,7 +441,7 @@ module.exports = cdb.core.View.extend({
       data: this.options.data,
       height: this.options.height,
       display: true,
-      show_shadow_bars: this.options.shadowData,
+      show_shadow_bars: this.options.displayShadowBars,
       margin: _.clone(this.options.margin),
       width: 0, // will be set on resize listener
       pos: { x: 0, y: 0 }
@@ -456,6 +460,14 @@ module.exports = cdb.core.View.extend({
     this.model.bind('change:showLabels', this._onChangShowLabels, this);
     this.model.bind('change:show_shadow_bars', this._onChangeShowShadowBars, this);
     this.model.bind('change:width', this._onChangeWidth, this);
+
+    if (this._originalData) {
+      this._originalData.bind('reset', function () {
+        this._removeShadowBars();
+        this._generateShadowBars();
+      }, this);
+      this.add_related_model(this._originalData);
+    }
   },
 
   _setupDimensions: function () {
@@ -464,11 +476,35 @@ module.exports = cdb.core.View.extend({
     this._onWindowResize();
   },
 
-  _setupScales: function () {
-    var data = this.model.get('data');
+  _getXScale: function () {
+    return d3.scale.linear().domain([0, 100]).range([0, this.chartWidth()]);
+  },
 
-    this.xScale = d3.scale.linear().domain([0, 100]).range([0, this.chartWidth()]);
-    this.yScale = d3.scale.linear().domain([0, d3.max(data, function (d) { return _.isEmpty(d) ? 0 : d.freq; })]).range([this.chartHeight(), 0]);
+  _getYScale: function () {
+    var data = (this._originalData && this._originalData.toJSON()) || this.model.get('data');
+    return d3.scale.linear().domain([0, d3.max(data, function (d) { return _.isEmpty(d) ? 0 : d.freq; })]).range([this.chartHeight(), 0]);
+  },
+
+  updateXScale: function () {
+    this.xScale = this._getXScale();
+  },
+
+  updateYScale: function () {
+    this.yScale = this._getYScale();
+  },
+
+  resetYScale: function () {
+    this.yScale = this._originalYScale;
+  },
+
+  _setupScales: function () {
+    this.updateXScale();
+
+    if (!this._originalYScale) {
+      this._originalYScale = this.yScale = this._getYScale();
+    }
+
+    var data = this.model.get('data');
 
     if (!data || !data.length) {
       return;
@@ -990,7 +1026,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _generateShadowBars: function () {
-    var data = this.options.shadowData;
+    var data = this._originalData && this._originalData.toJSON() || this.model.get('data');
 
     if (!data || !data.length || !this.model.get('show_shadow_bars')) {
       this._removeShadowBars();
@@ -1002,6 +1038,7 @@ module.exports = cdb.core.View.extend({
     var self = this;
 
     var yScale = d3.scale.linear().domain([0, d3.max(data, function (d) { return _.isEmpty(d) ? 0 : d.freq; })]).range([this.chartHeight(), 0]);
+
     var barWidth = this.chartWidth() / data.length;
 
     this.chart.append('g')

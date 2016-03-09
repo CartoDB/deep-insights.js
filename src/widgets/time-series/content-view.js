@@ -41,24 +41,6 @@ module.exports = cdb.core.View.extend({
     return this;
   },
 
-  _onFirstLoad: function () {
-    this._storeBounds();
-    this._dataviewModel.once('change:data', this.render, this);
-    this._dataviewModel.fetch();
-    if (!this._isDataEmpty()) {
-      this.render();
-    }
-  },
-
-  _storeBounds: function () {
-    var data = this._dataviewModel.getData();
-    if (data && data.length > 0) {
-      var start = data[0].start;
-      var end = data[data.length - 1].end;
-      this._dataviewModel.set({ start: start, end: end, bins: data.length });
-    }
-  },
-
   _appendView: function (view) {
     this.addView(view);
     this.$el.append(view.render().el);
@@ -67,5 +49,10 @@ module.exports = cdb.core.View.extend({
   _isDataEmpty: function () {
     var data = this._dataviewModel.getData();
     return _.isEmpty(data) || _.size(data) === 0;
+  },
+
+  _onFirstLoad: function () {
+    this.render();
+    this._dataviewModel.fetch(); // do an explicit fetch again, to get actual data with the filters applied (e.g. bbox)
   }
 });

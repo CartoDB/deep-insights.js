@@ -233,7 +233,7 @@
                       "options": {
                         "sql": "select * from ne_10m_populated_places_simple",
                         "layer_name": "Populated places",
-                        "cartocss": "/** simple visualization */\n\n#places{\n marker-fill-opacity: 0.9;\n  marker-line-color: #FFF;\n  marker-line-width: 0.6;\n  marker-line-opacity: 1;\n  marker-placement: point;\n  marker-type: ellipse;\n  marker-width: 8;\n  marker-fill: green;\n  marker-allow-overlap: true;\n}",
+                        "cartocss": "/** simple visualization */\n\n#places{\n marker-fill-opacity: 0.9;\n  marker-line-color: #FFF;\n  marker-line-width: 0.6;\n  marker-line-opacity: 1;\n  marker-placement: point;\n  marker-type: ellipse;\n  marker-width: 8;\n  marker-fill: darkblue;\n  marker-allow-overlap: true;\n}",
                         "cartocss_version": "2.1.1",
                         "interactivity": "cartodb_id,adm0_a3,name,pop_max",
                         "table_name": "\"\"."
@@ -303,7 +303,8 @@
           "next": null,
           "transition_options": {
             "time": 0
-          }
+          },
+          vector: true
         };
 
         var dashboard = cartodb.deepInsights.createDashboard('#dashboard', vizJSON, {

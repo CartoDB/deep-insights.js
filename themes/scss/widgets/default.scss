@@ -29,7 +29,6 @@
   @include align-items(center);
   position: relative;
   width: 100%;
-  margin: 0 0 $baseSize - 2;
 }
 .CDB-Widget-header,
 .CDB-Widget-footer,
@@ -50,10 +49,10 @@
   @include display-flex();
   @include justify-content(flex-start, start);
   @include align-items(center);
+  margin-bottom: $baseSize + 4;
 }
 .CDB-Widget-content {
   position: relative;
-  margin-top: 10px;
 }
 .CDB-Widget-content--noSidesMargin {
   margin-right: 0;
@@ -74,6 +73,9 @@
   display: none;
 }
 
+.CDB-Widget-options {
+  margin-right: -7px;
+}
 
 // Widget media query
 @include media-query() {
