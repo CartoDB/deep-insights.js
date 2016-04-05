@@ -9,19 +9,11 @@
   opacity: 0;
 }
 .CDB-Dashboard-menuActions {
-  position: absolute;
-  top: 26px;
-  right: 18px;
-  left: 72px;
-  width: 304px;
-  opacity: 0;
+  margin-top: 24px;
 }
 .CDB-Dashboard-menuActionsItem {
   @include inline-block();
   margin-right: 8px;
-  &:first-child {
-    margin-right: 26px;
-  }
 }
 .CDB-Dashboard-menuInfo.is-active {
   display: none;
@@ -33,7 +25,7 @@
   bottom: 0;
   left: 0;
   width: 72px;
-  max-width: 400px;
+  max-width: 448px;
   padding: 16px;
   background: $cBlue;
   overflow: hidden;
@@ -62,18 +54,14 @@
   }
 
   .CDB-Dashboard-menuInner {
-    width: 400px;
+    width: 448px;
     background: $cWhite;
     box-shadow: 0 0 40px 0 rgba($cMainBg, 0.4);
   }
 
   .CDB-Dashboard-menuTexts,
-  .CDB-Dashboard-menuActions,
   .CDB-Dashboard-menuFooterTxt {
     @include animation(fadeInDown 0.8s both);
-  }
-  .CDB-Dashboard-menuSnapshots {
-    opacity: 1;
   }
   .CDB-Dashboard-menuInfoLink {
     transform: rotate(180deg);
@@ -110,10 +98,6 @@
   text-align: center;
 }
 
-.CDB-Dashboard-menuTitle {
-  margin-bottom: 20px;
-}
-
 .CDB-Dashboard-menuFooter {
   position: absolute;
   right: 18px;
@@ -139,45 +123,6 @@
 }
 .CDB-Dashboard-menuFooterItem {
   margin-top: 20px;
-}
-.CDB-Dashboard-menuSnapshots {
-  @include transition(opacity, 0.3s, ease-out);
-  position: relative;
-  width: 280px;
-  height: 120px;
-  margin-left: -24px;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-.CDB-Dashboard-menuSnapshotsList {
-  display: flex;
-  position: absolute;
-  flex-flow: row wrap;
-  width: 1000px;
-}
-.CDB-Dashboard-menuSnapshotsListItem {
-  width: 96px;
-  height: 72px;
-  margin-right: 8px;
-  padding: 12px;
-  border-radius: 4px;
-  background: $cWhite;
-  box-sizing: border-box;
-}
-.CDB-Dashboard-menuSnapshotsListTitle {
-  margin-bottom: 8px;
-  font-size: $sFontSize-small;
-  font-weight: $sFontWeight-semibold;
-  line-height: $sLineHeight-small;
-}
-.CDB-Dashboard-menuSnapshotsListDate {
-  color: #636D72;
-  font-size: $sFontSize-small;
-  font-weight: $sFontWeight-lighter;
-  line-height: $sLineHeight-small;
 }
 .CDB-Dashboard-menuMobile {
   display: none;
@@ -233,6 +178,63 @@
     bottom: -6px;
   }
 }
+.CDB-SnapShoots {
+  position: relative;
+  margin-top: 48px;
+}
+.CDB-SnapShoots::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 7px;
+  width: 1px;
+  background: $cSecondaryLine;
+  content: '';
+}
+.CDB-SnapShoots-item {
+  margin-bottom: 8px;
+}
+.CDB-SnapShoots-inner {
+  @include display-flex();
+  @include align-items(center);
+}
+.CDB-SnapShoots-item:last-child {
+  margin-bottom: 0;
+}
+.CDB-SnapShoots-radio {
+  margin-right: 10px;
+}
+.CDB-SnapShoots-text {
+  @include display-flex();
+  @include flex(1);
+  @include align-items(center);
+}
+.CDB-SnapShoots-input {
+  max-width: 163px;
+  margin: 0 17px 0 8px;
+  border: 1px solid $cWhite;
+}
+.CDB-SnapShoots-infoInner {
+  position: relative;
+  margin-top: 8px;
+  margin-bottom: -8px;
+  padding: 8px 0;
+  background: $cWhite;
+}
+.CDB-SnapShoots-infoContainer {
+  @include display-flex();
+  @include align-items(center);
+  padding: 14px 16px;
+  border: 1px dashed $cSecondaryLine;
+  border-radius: $baseSize / 2;
+}
+.CDB-SnapShoots-infoText {
+  @include flex(1);
+}
+.CDB-SnapShoots-action {
+  margin-right: -8px;
+}
+
 @include keyframes(fadeInDown) {
   from {
     @include css3-prefix(transform, translate3d(-5%, 0, 0));

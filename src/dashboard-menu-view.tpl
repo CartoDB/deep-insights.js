@@ -22,32 +22,114 @@
           </div>
         </button>
       </div>
-      <ul class="CDB-Dashboard-menuActions">
-        <li class="CDB-Dashboard-menuActionsItem">
-          <a href="#" class="u-hintTextColor">
-            <i class="CDB-IconFont CDB-IconFont-heartFill CDB-Size-large"></i>
-          </a>
-        </li>
-        <li class="CDB-Dashboard-menuActionsItem">
-          <a href="#" class="u-hintTextColor">
-            <i class="CDB-IconFont CDB-IconFont-twitter CDB-Size-large"></i>
-          </a>
-        </li>
-        <li class="CDB-Dashboard-menuActionsItem">
-          <a href="#" class="u-hintTextColor">
-            <i class="CDB-IconFont CDB-IconFont-facebook CDB-Size-medium"></i>
-          </a>
-        </li>
-        <li class="CDB-Dashboard-menuActionsItem">
-          <a href="#" class="u-hintTextColor">
-            <i class="CDB-IconFont CDB-IconFont-anchor CDB-Size-medium"></i>
-          </a>
-        </li>
-      </ul>
+
       <div class="CDB-Dashboard-menuTexts CDB-Dashboard-hideMobile">
-        <p class="CDB-Text CDB-Size-small u-upperCase u-altTextColor u-bSpace--m js-timeAgo">UPDATED <%- updatedAt %></p>
-        <h1 class="CDB-Dashboard-menuTitle CDB-Text CDB-Size-huge u-ellipsis js-title"><%- title %></h1>
-        <h2 class="CDB-Text CDB-Size-large is-light u-secondaryTextColor js-description"><%= cdb.core.sanitize.html(description) %></h2>
+        <p class="CDB-Text CDB-Size-small is-semibold u-upperCase u-mainTextColor u-bSpace--xl js-timeAgo">UPDATED <%- updatedAt %></p>
+        <h1 class="CDB-Dashboard-menuTitle CDB-Text CDB-Size-huge u-ellipsis u-bSpace--xl js-title"><%- title %></h1>
+        <h2 class="CDB-Text CDB-Size-large u-secondaryTextColor js-description"><%= cdb.core.sanitize.html(description) %></h2>
+        <ul class="CDB-Dashboard-menuActions">
+          <li class="CDB-Dashboard-menuActionsItem">
+            <a href="#" class="u-hintTextColor">
+              <i class="CDB-IconFont CDB-IconFont-heartFill CDB-Size-large"></i>
+            </a>
+          </li>
+          <li class="CDB-Dashboard-menuActionsItem">
+            <a href="#" class="u-hintTextColor">
+              <i class="CDB-IconFont CDB-IconFont-twitter CDB-Size-large"></i>
+            </a>
+          </li>
+          <li class="CDB-Dashboard-menuActionsItem">
+            <a href="#" class="u-hintTextColor">
+              <i class="CDB-IconFont CDB-IconFont-facebook CDB-Size-medium"></i>
+            </a>
+          </li>
+          <li class="CDB-Dashboard-menuActionsItem">
+            <a href="#" class="u-hintTextColor">
+              <i class="CDB-IconFont CDB-IconFont-anchor CDB-Size-medium"></i>
+            </a>
+          </li>
+        </ul>
+        <ul class="CDB-SnapShoots">
+          <li class="CDB-SnapShoots-item">
+            <div class="CDB-SnapShoots-inner">
+              <div class="CDB-SnapShoots-radio">
+                <input class="CDB-Radio" type="radio" name="snapshoot" value="01" checked>
+                <span class="u-iBlock CDB-Radio-face"></span>
+              </div>
+              <div class="CDB-SnapShoots-text">
+                <p class="CDB-Text is-semibold CDB-Size-small">PRESENT</p>
+              </div>
+            </div>
+            <div class="CDB-SnapShoots-infoInner">
+              <div class="CDB-SnapShoots-infoContainer">
+                <p class="CDB-SnapShoots-infoText CDB-Text CDB-Size-small u-altTextColor">This allows you to save the map states and configuration</p>
+                <button class="CDB-Button CDB-Button--primary CDB-Button--small">
+                  <span class="CDB-Button-Text CDB-Text is-semibold CDB-Size-small">SAVE SNAPSHOT</span>
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li class="CDB-SnapShoots-item">
+            <div class="CDB-SnapShoots-inner">
+              <div class="CDB-SnapShoots-radio">
+                <input class="CDB-Radio" type="radio" name="snapshoot" value="01" checked>
+                <span class="u-iBlock CDB-Radio-face"></span>
+              </div>
+              <div class="CDB-SnapShoots-text">
+                <p class="CDB-Text is-semibold CDB-Size-small">28 FEB 2015, 23:51</p>
+                <input type="text" name="text" placeholder="DejaVu Sans" class="CDB-InputText CDB-Text CDB-SnapShoots-input">
+                <button class="CDB-Shape CDB-SnapShoots-action">
+                  <div class="CDB-Shape-threePoints is-blue is-small">
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li class="CDB-SnapShoots-item">
+            <div class="CDB-SnapShoots-inner">
+              <div class="CDB-SnapShoots-radio">
+                <input class="CDB-Radio" type="radio" name="snapshoot" value="01" checked>
+                <span class="u-iBlock CDB-Radio-face"></span>
+              </div>
+              <div class="CDB-SnapShoots-text">
+                <p class="CDB-Text is-semibold CDB-Size-small">28 FEB 2015, 23:51</p>
+                <input type="text" name="text" placeholder="DejaVu Sans" class="CDB-InputText CDB-Text CDB-SnapShoots-input">
+                <button class="CDB-Shape CDB-SnapShoots-action">
+                  <div class="CDB-Shape-threePoints is-blue is-small">
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li class="CDB-SnapShoots-item">
+            <div class="CDB-SnapShoots-inner">
+              <div class="CDB-SnapShoots-radio">
+                <input class="CDB-Radio" type="radio" name="snapshoot" value="01" checked>
+                <span class="u-iBlock CDB-Radio-face"></span>
+              </div>
+              <div class="CDB-SnapShoots-text">
+                <p class="CDB-Text is-semibold CDB-Size-small">28 FEB 2015, 23:51</p>
+                <input type="text" name="text" placeholder="DejaVu Sans" class="CDB-InputText CDB-Text CDB-SnapShoots-input">
+                <button class="CDB-Shape CDB-SnapShoots-action">
+                  <div class="CDB-Shape-threePoints is-blue is-small">
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                    <div class="CDB-Shape-threePointsItem"></div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+
+
       </div>
     </div>
 
