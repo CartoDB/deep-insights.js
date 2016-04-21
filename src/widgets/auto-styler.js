@@ -21,10 +21,13 @@ var AutoStyler = cdb.core.Model.extend({
   _getStyleForHistogram: function () {
     var style = '';
     var colors = ['YlGnBu', 'Greens', 'Reds', 'Blues'];
-    var color = colors[Math.floor(Math.random() * colors.length)];
+    var colorScale = colors[Math.floor(Math.random() * colors.length)];
     var stylesByGeometry = AutoStyler.STYLE_TEMPLATE;
     if (this.vector) {
       var geometryType = this._getGeometryType();
+      if (geometryType === 'polygon'){
+        this.scale = colorScale;
+      }
       style = this._getHistGeometry(geometryType)
         .replace('{{layername}}', '#layer{');
     } else {
@@ -35,7 +38,7 @@ var AutoStyler = cdb.core.Model.extend({
     }
     return style.replace(/{{column}}/g, this.dataviewModel.get('column'))
       .replace(/{{bins}}/g, this.dataviewModel.get('bins'))
-      .replace(/{{color}}/g, color)
+      .replace(/{{color}}/g, colorScale)
       .replace(/{{min}}/g, 1)
       .replace(/{{max}}/g, 20)
       .replace(/{{ramp}}/g, '')
@@ -47,6 +50,7 @@ var AutoStyler = cdb.core.Model.extend({
     if (geometryType === 'polygon') {
       style = style.replace('{{defaultColor}}', 'ramp([{{column}}], colorbrewer({{color}}, {{bins}}))');
     } else if (geometryType === 'marker') {
+      this.colorScale = null;
       style = style.replace('{{markerWidth}}', 'ramp([{{column}}], {{min}}, {{max}}), {{bins}})');
     } else {
       style = style.replace('{{defaultColor}}', '#000');
