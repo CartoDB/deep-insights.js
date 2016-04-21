@@ -65,6 +65,8 @@ module.exports = cdb.core.View.extend({
       sublayer.setCartoCSS(index, style, true);
     }
     this.dataviewModel.set('autoStyle', true);
+    this.widgetModel.set('colorScale', this.autoStyler.scale);
+
   },
 
   cancelAutoStyle: function () {
@@ -76,6 +78,7 @@ module.exports = cdb.core.View.extend({
       sublayer.renderers[index].restoreCartoCSS(true);
     }
     this.dataviewModel.set('autoStyle', false);
+    this.widgetModel.set('colorScale', this.autoStyler.scale);
   }
 
 });
