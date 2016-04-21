@@ -68,7 +68,7 @@ module.exports = cdb.core.View.extend({
 
   _initBinds: function () {
     this._originalData.once('change:data', this._onFirstLoad, this);
-    this.model.bind('change:collapsed change:pinned change:normalized', this.render, this);
+    this.model.bind('change:collapsed change:pinned change:normalized change:colorScale', this.render, this);
   },
 
   _onFirstLoad: function () {
