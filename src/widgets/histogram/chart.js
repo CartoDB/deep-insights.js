@@ -2,6 +2,7 @@ var $ = require('jquery');
 var _ = require('underscore');
 var d3 = require('d3');
 var cdb = require('cartodb.js');
+var colorbrewer = require('colorbrewer');
 var formatter = require('../../formatter');
 
 module.exports = cdb.core.View.extend({
@@ -1011,10 +1012,10 @@ module.exports = cdb.core.View.extend({
       .attr('width', Math.max(0, this.barWidth - 1));
 
     bars
-      .transition()
-      .ease(this.options.transitionType)
-      .duration(this.options.animationSpeed)
-      .delay(this.options.animationBarDelay)
+      // .transition()
+      // .ease(this.options.transitionType)
+      // .duration(this.options.animationSpeed)
+      // .delay(this.options.animationBarDelay)
       .transition()
       .attr('height', function (d) {
         if (_.isEmpty(d)) {
@@ -1040,7 +1041,19 @@ module.exports = cdb.core.View.extend({
         } else {
           return self.yScale(d.freq);
         }
-      });
+      })
+      .style('fill', self._getFillForBar.bind(self));
+  },
+
+  _getFillForBar: function (bar) {
+    var colorScale = this._parent.model.get('colorScale');
+    if (colorScale) {
+      var brewer = colorbrewer[colorScale];
+      var maxNumber = Math.max.apply(null,Object.keys(brewer).map(function(x){return parseInt(x, 10);}))
+      var nColorBins = Math.min(this.model.get('data').length, maxNumber);
+      var scale = cartodb.d3.scale.linear().domain([0, this.model.get('data').length]).range([0, maxNumber]);
+      return brewer[nColorBins][Math.floor(scale(bar.bin))];
+    }
   },
 
   showShadowBars: function () {
