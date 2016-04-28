@@ -230,14 +230,14 @@ describe('widgets/histogram/chart', function () {
   });
 
   describe('._getDataForScales', function () {
-    it('should calculate (x|y)Scale depending originalData if it is provided and view is not bounded', function () {
+    it('should calculate (x|y)Scale depending originalData if it is provided and view is not bound', function () {
       var data = this.view._getDataForScales();
       expect(data).toBe(this.originalData);
       expect(data).not.toBe(this.data);
     });
 
-    it('should calculate (x|y)Scale depending current data if view is bounded', function () {
-      this.view.model.set('bounded', true);
+    it('should calculate (x|y)Scale depending current data if view is bound', function () {
+      this.view.model.set('bound', true);
       var data = this.view._getDataForScales();
       expect(data).not.toBe(this.originalData);
       expect(data).toBe(this.data);

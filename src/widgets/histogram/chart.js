@@ -445,7 +445,7 @@ module.exports = cdb.core.View.extend({
 
   _setupModel: function () {
     this.model = new cdb.core.Model({
-      bounded: false,
+      bound: false,
       showLabels: true,
       data: this.options.data,
       height: this.options.height,
@@ -512,7 +512,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _getDataForScales: function () {
-    if (!this.model.get('bounded') && this._originalData) {
+    if (!this.model.get('bound') && this._originalData) {
       return this._originalData.getData();
     } else {
       return this.model.get('data');
@@ -1106,7 +1106,7 @@ module.exports = cdb.core.View.extend({
   },
 
   unsetBounds: function () {
-    this.model.set('bounded', false);
+    this.model.set('bound', false);
     this.updateYScale();
     this.contract(this.options.height);
     this.resetIndexes();
@@ -1114,7 +1114,7 @@ module.exports = cdb.core.View.extend({
   },
 
   setBounds: function () {
-    this.model.set('bounded', true);
+    this.model.set('bound', true);
     this.updateYScale();
     this.expand(4);
     this.removeShadowBars();
