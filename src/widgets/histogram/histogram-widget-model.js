@@ -5,7 +5,7 @@ var WidgetModel = require('../widget-model');
  */
 module.exports = WidgetModel.extend({
 
-  defaultState: _.extend(WidgetModel.defaultState, {
+  defaultState: _.extend(WidgetModel.prototype.defaultState, {
     autoStyle: false,
     lo_index: null,
     hi_index: null,
