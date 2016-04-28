@@ -240,6 +240,15 @@ describe('widgets/histogram/content-view', function () {
       expect(this.originalData.setBins).toHaveBeenCalled();
     });
 
+    it('should update state if range is applied', function () {
+      this.widgetModel.unbind('change:lo_index change:hi_index');
+      this.widgetModel.set({
+        lo_index: 2,
+        hi_index: 4
+      });
+      expect(_.isEmpty(this.widgetModel.getState())).not.toBe();
+    });
+
     it('should remove previous filter if there is a bins change', function () {
       var i = 0;
       this.dataviewModel.sync = function (method, model, options) {

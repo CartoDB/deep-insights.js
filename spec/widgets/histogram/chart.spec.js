@@ -58,6 +58,7 @@ describe('widgets/histogram/chart', function () {
       data: this.data,
       originalData: this.originalModel,
       displayShadowBars: true,
+      widgetModel: new cdb.core.Model(),
       xAxisTickFormat: function (d, i) {
         return d;
       }
