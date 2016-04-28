@@ -10,7 +10,7 @@ module.exports = WidgetModel.extend({
     lo_index: null,
     hi_index: null,
     normalized: false,
-  },
+  }),
 
   initialize: function (attrs, opts) {
     WidgetModel.prototype.initialize.apply(this, arguments);

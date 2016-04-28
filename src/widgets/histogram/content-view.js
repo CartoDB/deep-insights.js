@@ -159,8 +159,10 @@ module.exports = cdb.core.View.extend({
       data: this._dataviewModel.getData(),
       originalData: this._originalData,
       displayShadowBars: !this.model.get('normalized'),
-      normalized: this.model.get('normalized')
+      normalized: this.model.get('normalized'),
+      widgetModel: this.model
     }));
+    // this.histogramChartView = new HistogramChartView(this.model);
 
     this.$('.js-content').append(this.histogramChartView.el);
     this.addView(this.histogramChartView);
@@ -181,7 +183,8 @@ module.exports = cdb.core.View.extend({
       showOnWidthChange: false,
       data: this._dataviewModel.getData(),
       normalized: this.model.get('normalized'),
-      originalData: this._originalData
+      originalData: this._originalData,
+      widgetModel: this.model
     }));
 
     this.addView(this.miniHistogramChartView);
