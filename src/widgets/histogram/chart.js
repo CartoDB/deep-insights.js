@@ -27,6 +27,7 @@ module.exports = cdb.core.View.extend({
 
   initialize: function () {
     this._originalData = this.options.originalData;
+    this.widgetModel = this.options.widgetModel;
 
     if (!_.isNumber(this.options.height)) throw new Error('height is required');
 
@@ -156,8 +157,8 @@ module.exports = cdb.core.View.extend({
   },
 
   _onChangeRange: function () {
-    var lo_index = this.model.get('lo_index');
-    var hi_index = this.model.get('hi_index');
+    var lo_index = this.widgetModel.get('lo_index');
+    var hi_index = this.widgetModel.get('hi_index');
     if ((lo_index === 0 && hi_index === 0) || (lo_index === null && hi_index === null)) {
       return;
     }
@@ -177,8 +178,8 @@ module.exports = cdb.core.View.extend({
     }
     this.reset();
 
-    var loBarIndex = this.model.get('lo_index');
-    var hiBarIndex = this.model.get('hi_index');
+    var loBarIndex = this.widgetModel.get('lo_index');
+    var hiBarIndex = this.widgetModel.get('hi_index');
     this.selectRange(loBarIndex, hiBarIndex);
   },
 
@@ -335,7 +336,7 @@ module.exports = cdb.core.View.extend({
   },
 
   resetIndexes: function () {
-    this.model.set({ lo_index: null, hi_index: null });
+    this.widgetModel.set({ lo_index: null, hi_index: null });
   },
 
   removeShadowBars: function () {
@@ -464,7 +465,7 @@ module.exports = cdb.core.View.extend({
     this.model.bind('change:dragging', this._onChangeDragging, this);
     this.model.bind('change:height', this._onChangeHeight, this);
     this.model.bind('change:left_axis_tip', this._onChangeLeftAxisTip, this);
-    this.model.bind('change:lo_index change:hi_index', this._onChangeRange, this);
+    this.widgetModel.bind('change:lo_index change:hi_index', this._onChangeRange, this);
     this.model.bind('change:pos', this._onChangePos, this);
     this.model.bind('change:right_axis_tip', this._onChangeRightAxisTip, this);
     this.model.bind('change:showLabels', this._onChangShowLabels, this);
@@ -716,7 +717,7 @@ module.exports = cdb.core.View.extend({
             hiPosition = self._getBarPosition(hiBarIndex + 1);
           }
         }
-        self.model.set({ lo_index: loBarIndex, hi_index: hiBarIndex });
+        self.widgetModel.set({ lo_index: loBarIndex, hi_index: hiBarIndex });
       }
 
       if (d3.event.sourceEvent && loPosition === undefined && hiPosition === undefined) {
@@ -725,7 +726,7 @@ module.exports = cdb.core.View.extend({
         loPosition = self._getBarPosition(barIndex);
         hiPosition = self._getBarPosition(barIndex + 1);
 
-        self.model.set({ lo_index: barIndex, hi_index: barIndex + 1 });
+        self.widgetModel.set({ lo_index: barIndex, hi_index: barIndex + 1 });
       }
     }
 
