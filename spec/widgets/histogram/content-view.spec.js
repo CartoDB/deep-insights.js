@@ -240,14 +240,21 @@ describe('widgets/histogram/content-view', function () {
       expect(this.originalData.setBins).toHaveBeenCalled();
     });
 
-    it('should update state if range is applied', function () {
-      this.widgetModel.unbind('change:lo_index change:hi_index');
-      this.widgetModel.set({
-        lo_index: 2,
-        hi_index: 4
+    describe('the widget\'s state', function () {
+      it('should be updated if range is applied', function () {
+        this.widgetModel.unbind('change:lo_index change:hi_index');
+        this.widgetModel.set({
+          lo_index: 2,
+          hi_index: 4
+        });
+        expect(_.isEmpty(this.widgetModel.getState())).not.toBe();
       });
-      expect(_.isEmpty(this.widgetModel.getState())).not.toBe();
-    });
+
+      it('should reflect whether the histogram is being normalized', function () {
+        expect(_.isEmpty(this.widgetModel.getState())).toBe();
+      })
+    })
+
 
     it('should remove previous filter if there is a bins change', function () {
       var i = 0;
