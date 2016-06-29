@@ -21,12 +21,17 @@ module.exports = cdb.core.View.extend({
   render: function () {
     this.$el.empty();
     if (!this._rangeFilter.isEmpty()) {
+      var start = this._rangeFilter.get('min');
+      var end = this._rangeFilter.get('max');
+      if (this._dataviewModel.get('column_type') === 'date') {
+        start = new Date(this._scale.invert(start));
+        end = new Date(this._scale.invert(end));
+      }
       this.$el.html(
         template({
-          timeFormatter: this._timeFormatter,
-          dateFormatter: this._dateFormatter,
-          startDate: new Date(this._scale.invert(this._rangeFilter.get('min'))),
-          endDate: new Date(this._scale.invert(this._rangeFilter.get('max')))
+          timeAndDateFormatter: this._timeAndDateFormatter,
+          startDate: start,
+          endDate: end
         })
       );
     }
@@ -41,8 +46,13 @@ module.exports = cdb.core.View.extend({
       .range([this._dataviewModel.get('start'), this._dataviewModel.get('end')]);
 
     // for format rules see https://github.com/mbostock/d3/wiki/Time-Formatting
-    this._timeFormatter = d3.time.format('%H:%M');
-    this._dateFormatter = d3.time.format('%x');
+    this._timeAndDateFormatter = function (time) {
+      if (typeof time === 'number') {
+        return Math.round(time);
+      } else {
+        return d3.time.format('%H:%M')(time) + ' ' + d3.time.format('%x')(time);
+      }
+    };
   },
 
   _onClick: function () {
