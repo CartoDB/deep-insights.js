@@ -47,11 +47,12 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
     widgets: widgets,
     model: model
   });
-  var stateFromURL = opts.state || URLHelper.getStateFromCurrentURL();
-  if (!_.isEmpty(stateFromURL.map)) {
-    vizJSON.center = stateFromURL.map.center;
+
+  var state = opts.state;
+  if (!_.isEmpty(state.map)) {
+    vizJSON.center = state.map.center;
     vizJSON.bounds = null;
-    vizJSON.zoom = stateFromURL.map.zoom;
+    vizJSON.zoom = state.map.zoom;
   }
 
   var vis = cdb.createVis(dashboardView.$('#map'), vizJSON, _.extend(opts, {
@@ -59,11 +60,11 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
   }));
 
   vis.once('load', function (vis) {
-    if (!_.isEmpty(stateFromURL.map)) {
-      vis.map.setView(stateFromURL.map.center, stateFromURL.map.zoom);
+    if (!_.isEmpty(state.map)) {
+      vis.map.setView(state.map.center, state.map.zoom);
     }
 
-    var widgetsState = stateFromURL.widgets || {};
+    var widgetsState = state.widgets || {};
 
     // Create widgets
     var widgetsService = new WidgetsService(widgets, vis.dataviews);
@@ -78,7 +79,7 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
       // Flatten the data structure given in vizJSON, the widgetsService will use whatever it needs and ignore the rest
       var attrs = _.extend({}, d, d.options);
       var newWidgetModel = widgetModelsMap[d.type];
-      var state = widgetsState[d.id];
+      var widgetState = widgetsState[d.id];
 
       if (_.isFunction(newWidgetModel)) {
         // Find the Layer that the Widget should be created for.
@@ -91,7 +92,7 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
           layer = vis.map.layers.at(d.layerIndex);
         }
 
-        newWidgetModel(attrs, layer, state);
+        newWidgetModel(attrs, layer, widgetState);
       } else {
         cdb.log.error('No widget found for type ' + d.type);
       }
