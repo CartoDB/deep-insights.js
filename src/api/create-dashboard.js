@@ -47,7 +47,7 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
     model: model
   });
 
-  var state = opts.state;
+  var state = opts.state || {};
   if (!_.isEmpty(state.map)) {
     vizJSON.center = state.map.center;
     vizJSON.bounds = null;
