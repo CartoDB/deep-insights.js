@@ -68,8 +68,18 @@ module.exports = cdb.core.View.extend({
   },
 
   _initBinds: function () {
+    var self = this;
     this._originalData.once('change:data', this._onFirstLoad, this);
     this.model.bind('change:collapsed change:pinned change:normalized', this.render, this);
+    this.model.autoStyler.bind('change:palette', function (model, palette) {
+      if (self.histogramChartView){
+        if (palette) {
+          self.histogramChartView.colorBars('cartocolor', palette);
+        } else {
+          self.histogramChartView.colorBars(null);
+        }
+      }
+    });
   },
 
   _onFirstLoad: function () {

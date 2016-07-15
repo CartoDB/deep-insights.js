@@ -12,9 +12,9 @@ var HistogramAutoStyler = AutoStyler.extend({
   getColorLine: function (sym) {
     var shape = this.dataviewModel.getDistributionType();
     var scales = HistogramAutoStyler.SCALES_MAP[sym][shape];
-    return sym + ': ramp([' + this.dataviewModel.get('column') +
+    return '/* __autostyling_colors__ */\n' + sym + ': ramp([' + this.dataviewModel.get('column') +
                  '], cartocolor(' + scales.palette + ', ' + this.dataviewModel.get('bins') +
-                 ')), ' + scales.quantification + ');';
+                 ')), ' + scales.quantification + ');\n/* __autostyling_colors__ */\n';
   }
 
 });

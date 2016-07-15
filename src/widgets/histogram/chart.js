@@ -3,6 +3,7 @@ var _ = require('underscore');
 var d3 = require('d3');
 var cdb = require('cartodb.js');
 var formatter = require('../../formatter');
+var cartocolor = require('cartocolor');
 
 module.exports = cdb.core.View.extend({
 
@@ -87,6 +88,21 @@ module.exports = cdb.core.View.extend({
       : 0;
 
     return this.model.get('height') - m.top - m.bottom - labelsMargin;
+  },
+
+  colorBars: function (scale, palette) {
+    var maxBinsInPalette;
+    var paletteSelected = [];
+    var bins = this.model.get('data').length;
+    if (scale) {
+      maxBinsInPalette = _.last(Object.keys(cartocolor[palette]));
+      paletteSelected = cartocolor[palette][Math.min(bins, maxBinsInPalette)];
+    }
+    var bars = this.$('.CDB-Chart-bars');
+    bars.children(Infinity).each(function (barIndex) {
+      var color = paletteSelected[Math.floor((barIndex * maxBinsInPalette) / bins)] || '#9de0ad';
+      $(this).css('fill', color);
+    });
   },
 
   _resizeToParentElement: function () {
