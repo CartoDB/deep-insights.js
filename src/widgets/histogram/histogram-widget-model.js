@@ -1,6 +1,7 @@
 var WidgetModel = require('../widget-model');
 var AutoStylerFactory = require('../auto-style/factory');
 var _ = require('underscore');
+var d3 = require('d3');
 
 /**
  * Model for a histogram widget
@@ -54,21 +55,23 @@ module.exports = WidgetModel.extend({
 
   getState: function () {
     var state = WidgetModel.prototype.getState.call(this);
-    var start = this.dataviewModel.get('start');
-    var end = this.dataviewModel.get('end');
-    var min = this.get('min');
-    var max = this.get('max');
-    var checkRoughEqual = function (a, b) {
-      if (_.isNumber(a) && _.isNumber(b) && Math.abs(a - b) > Math.abs(start - end) * 0.01) {
-        return true;
+    var min = this.get('lo_index');
+    var max = this.get('hi_index');
+    if (_.isNumber(min) || _.isNumber(max)) {
+      var scale = d3.scale.linear().domain([0, this.dataviewModel.get('bins')]).range([this.dataviewModel.get('start'), this.dataviewModel.get('end')]);
+      var lo = scale(min);
+      var hi = scale(max);
+      if (lo) {
+        state.min = lo;
+        if (!hi) {
+          state.max = scale(this.get('bins') - 1);
+        } else {
+          state.max = hi;
+        }
+      } else if (hi) {
+        state.max = hi;
+        state.min = scale(0);
       }
-      return false;
-    };
-    if (checkRoughEqual(start, min)) {
-      state.min = min;
-    }
-    if (checkRoughEqual(end, max)) {
-      state.max = max;
     }
     return state;
   }
