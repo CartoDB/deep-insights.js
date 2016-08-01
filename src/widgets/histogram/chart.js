@@ -156,10 +156,15 @@ module.exports = cdb.core.View.extend({
   },
 
   _onChangeRange: function () {
-    if (this.model.get('lo_index') === 0 && this.model.get('hi_index') === 0) {
+    var lo_index = this.model.get('lo_index');
+    var hi_index = this.model.get('hi_index');
+    if ((lo_index === 0 && hi_index === 0) || (lo_index === null && hi_index === null)) {
       return;
     }
-    this.trigger('range_updated', this.model.get('lo_index'), this.model.get('hi_index'));
+    this.selectRange(lo_index, hi_index);
+    this._adjustBrushHandles();
+    this._selectBars();
+    this.trigger('on_brush_end', lo_index, hi_index);
   },
 
   _onChangeWidth: function () {
@@ -178,6 +183,7 @@ module.exports = cdb.core.View.extend({
 
   _onChangeNormalized: function () {
     // do not show shadow bars if they are not enabled
+    this.model.set('show_shadow_bars', !this.model.get('normalized'));
     this._generateShadowBars();
     this.updateYScale();
     this.refresh();
@@ -190,6 +196,7 @@ module.exports = cdb.core.View.extend({
     this.chart.attr('height', height);
     this.leftHandle.attr('height', height);
     this.rightHandle.attr('height', height);
+    this.updateYScale();
 
     this.reset();
   },
@@ -526,7 +533,7 @@ module.exports = cdb.core.View.extend({
     }
 
     if (this.options.type === 'time') {
-      this.xAxisScale = d3.time.scale().domain([data[0].start * 1000, data[data.length - 1].end * 1000]).nice().range([0, this.chartWidth()]);
+      this.xAxisScale = d3.time.scale().domain([data[0].start * 1000, data[data.length - 1].end * 1000]).range([0, this.chartWidth()]);
     } else {
       this.xAxisScale = d3.scale.linear().range([data[0].start, data[data.length - 1].end]).domain([0, this.chartWidth()]);
     }
@@ -596,15 +603,21 @@ module.exports = cdb.core.View.extend({
     var lo = extent[0];
     var hi = extent[1];
 
-    this.model.set({ lo_index: this._getLoBarIndex(), hi_index: this._getHiBarIndex() });
-
-    this.chart.selectAll('.CDB-Chart-bar').classed('is-selected', function (d, i) {
+    function _isIn (o, i) {
       var a = Math.floor(i * self.barWidth);
       var b = Math.floor(a + self.barWidth);
       var LO = Math.floor(self.xScale(lo));
       var HI = Math.floor(self.xScale(hi));
-      var isIn = (a > LO && a < HI) || (b > LO && b < HI) || (a <= LO && b >= HI);
-      return !isIn;
+      return (a > LO && a < HI) || (b > LO && b < HI) || (a <= LO && b >= HI);
+    }
+
+    this.chart.selectAll('.CDB-Chart-bar').classed({
+      'is-selected': function (d, i) {
+        return _isIn(self, i);
+      },
+      'is-filtered': function (d, i) {
+        return !_isIn(self, i);
+      }
     });
   },
 
@@ -637,7 +650,7 @@ module.exports = cdb.core.View.extend({
 
   removeSelection: function () {
     this.resetIndexes();
-    this.chart.selectAll('.CDB-Chart-bar').classed('is-selected', false);
+    this.chart.selectAll('.CDB-Chart-bar').classed({'is-selected': false, 'is-filtered': false});
     this._removeBrush();
     this._setupBrush();
   },
@@ -671,7 +684,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _getBarIndex: function () {
-    var x = d3.event.sourceEvent.offsetX;
+    var x = d3.event.sourceEvent.layerX;
     return Math.floor(x / this.barWidth);
   },
 
@@ -712,13 +725,7 @@ module.exports = cdb.core.View.extend({
             hiPosition = self._getBarPosition(hiBarIndex + 1);
           }
         }
-
-        self._selectRange(loPosition, hiPosition);
         self.model.set({ lo_index: loBarIndex, hi_index: hiBarIndex });
-        self._adjustBrushHandles();
-        self._selectBars();
-
-        self.trigger('on_brush_end', self.model.get('lo_index'), self.model.get('hi_index'));
       }
 
       if (d3.event.sourceEvent && loPosition === undefined && hiPosition === undefined) {
@@ -728,8 +735,6 @@ module.exports = cdb.core.View.extend({
         hiPosition = self._getBarPosition(barIndex + 1);
 
         self.model.set({ lo_index: barIndex, hi_index: barIndex + 1 });
-        self._selectRange(loPosition, hiPosition);
-        self.trigger('on_brush_end', self.model.get('lo_index'), self.model.get('hi_index'));
       }
     }
 
@@ -1008,7 +1013,7 @@ module.exports = cdb.core.View.extend({
       })
       .attr('y', self.chartHeight())
       .attr('height', 0)
-      .attr('width', Math.max(0, this.barWidth - 1));
+      .attr('width', Math.max(0.5, this.barWidth - 1));
 
     bars
       .transition()
@@ -1090,7 +1095,7 @@ module.exports = cdb.core.View.extend({
           return yScale(d.freq);
         }
       })
-      .attr('width', Math.max(0, barWidth - 1))
+      .attr('width', Math.max(0.5, barWidth - 1))
       .attr('height', function (d) {
         if (_.isEmpty(d)) {
           return 0;

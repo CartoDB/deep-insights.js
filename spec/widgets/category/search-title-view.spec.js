@@ -5,9 +5,15 @@ var SearchTitleView = require('../../../src/widgets/category/title/search-title-
 describe('widgets/category/search-title-view', function () {
   beforeEach(function () {
     var vis = specHelper.createDefaultVis();
-    this.dataviewModel = vis.dataviews.createCategoryModel(vis.map.layers.first(), {
+    var layer = vis.map.layers.first();
+    layer.restoreCartoCSS = jasmine.createSpy('restore');
+    layer.getGeometryType = function () {
+      return 'polygon';
+    };
+    this.dataviewModel = vis.dataviews.createCategoryModel(layer, {
       column: 'col'
     });
+    this.dataviewModel.layer.set('initialStyle', '#layer {  marker-line-width: 0.5;  marker-line-color: #fcfafa;  marker-line-opacity: 1;  marker-width: 6.076923076923077;  marker-fill: #e49115;  marker-fill-opacity: 0.9;  marker-allow-overlap: true;}');
     this.widgetModel = new CategoryWidgetModel({}, {
       dataviewModel: this.dataviewModel
     });
@@ -78,20 +84,20 @@ describe('widgets/category/search-title-view', function () {
     });
 
     it('should render "apply colors" button and apply them when is clicked', function () {
-      expect(this.view.$('.js-applyColors').length).toBe(1);
-      spyOn(this.widgetModel, 'applyColors').and.callThrough();
-      this.view.$('.js-applyColors').click();
-      expect(this.widgetModel.applyColors).toHaveBeenCalled();
-      expect(this.view.$('.js-applyColors').length).toBe(0);
-      expect(this.view.$('.js-cancelColors').length).toBe(1);
+      expect(this.view.$('.js-autoStyle').length).toBe(1);
+      spyOn(this.widgetModel, 'autoStyle').and.callThrough();
+      this.view.$('.js-autoStyle').click();
+      expect(this.widgetModel.autoStyle).toHaveBeenCalled();
+      expect(this.view.$('.js-autoStyle').length).toBe(0);
+      expect(this.view.$('.js-cancelAutoStyle').length).toBe(1);
     });
 
     it('should remove category colors when they are applied and button is clicked', function () {
-      spyOn(this.widgetModel, 'cancelColors').and.callThrough();
-      this.view.$('.js-applyColors').click();
-      expect(this.view.$('.js-cancelColors').hasClass('is-selected')).toBeTruthy();
-      this.view.$('.js-cancelColors').click();
-      expect(this.widgetModel.cancelColors).toHaveBeenCalled();
+      spyOn(this.widgetModel, 'cancelAutoStyle').and.callThrough();
+      this.view.$('.js-autoStyle').click();
+      expect(this.view.$('.js-cancelAutoStyle').hasClass('is-selected')).toBeTruthy();
+      this.view.$('.js-cancelAutoStyle').click();
+      expect(this.widgetModel.cancelAutoStyle).toHaveBeenCalled();
     });
   });
 

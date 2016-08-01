@@ -8,6 +8,7 @@ var template = require('./content.tpl');
 var DropdownView = require('../dropdown/widget-dropdown-view');
 var AnimateValues = require('../animate-values.js');
 var animationTemplate = require('./animation-template.tpl');
+var d3 = require('d3');
 
 /**
  * Widget content view for a histogram
@@ -36,21 +37,13 @@ module.exports = cdb.core.View.extend({
     this._initTitleView();
 
     var dropdown = new DropdownView({
-      target: this.$('.js-actions'),
+      model: this.model,
+      target: '.js-actions',
       container: this.$('.js-header'),
       flags: {
         normalizeHistogram: true
       }
     });
-
-    dropdown.bind('click', function (action, value) {
-      if (action === 'toggle') {
-        this.model.set('collapsed', !this.model.get('collapsed'));
-      } else if (action === 'normalize') {
-        this.histogramChartView.setNormalized(value);
-        this.miniHistogramChartView.setNormalized(value);
-      }
-    }, this);
 
     this.addView(dropdown);
 
@@ -70,12 +63,17 @@ module.exports = cdb.core.View.extend({
 
   _initBinds: function () {
     this._originalData.once('change:data', this._onFirstLoad, this);
-    this.model.bind('change:collapsed', this.render, this);
+    this.model.bind('change:normalized', function () {
+      var normalized = this.model.get('normalized');
+      this.histogramChartView.setNormalized(normalized);
+      this.miniHistogramChartView.setNormalized(normalized);
+    }, this);
   },
 
   _onFirstLoad: function () {
     this.render();
     this._dataviewModel.bind('change:data', this._onHistogramDataChanged, this);
+    this._dataviewModel.once('change:data', function () {}, this);
     this.add_related_model(this._dataviewModel);
     this._dataviewModel.fetch();
   },
@@ -167,10 +165,20 @@ module.exports = cdb.core.View.extend({
     this.$('.js-content').append(this.histogramChartView.el);
     this.addView(this.histogramChartView);
 
-    this.histogramChartView.bind('range_updated', this._onRangeUpdated, this);
     this.histogramChartView.bind('on_brush_end', this._onBrushEnd, this);
     this.histogramChartView.bind('hover', this._onValueHover, this);
     this.histogramChartView.render().show();
+    this.histogramChartView.model.once('change:data', function () {
+      if (_.isNumber(this.model.get('min')) || _.isNumber(this.model.get('max'))) {
+        var scale = d3.scale.linear().domain([this._dataviewModel.get('start'), this._dataviewModel.get('end')]).range([0, this._dataviewModel.get('bins')]);
+        var lo = Math.round(scale(this.model.get('min')));
+        var hi = Math.round(scale(this.model.get('max')));
+        if (lo !== 0 && hi !== this._dataviewModel.get('bins') - 1) {
+          this.histogramChartView.selectRange(lo, hi);
+          this.model.set('filter_enabled', true);
+        }
+      }
+    }, this);
 
     this._updateStats();
   },
@@ -183,7 +191,8 @@ module.exports = cdb.core.View.extend({
       showOnWidthChange: false,
       data: this._dataviewModel.getData(),
       normalized: this.model.get('normalized'),
-      originalData: this._originalData
+      originalData: this._originalData,
+      widgetModel: this.model
     }));
 
     this.addView(this.miniHistogramChartView);
@@ -244,8 +253,7 @@ module.exports = cdb.core.View.extend({
 
   _onBrushEnd: function (loBarIndex, hiBarIndex) {
     var data = this._dataviewModel.getData();
-
-    if (!data || !data.length) {
+    if ((!data || !data.length) || (this.model.get('lo_index') === loBarIndex && this.model.get('hi_index') === hiBarIndex)) {
       return;
     }
 
@@ -270,18 +278,6 @@ module.exports = cdb.core.View.extend({
     } else {
       console.error('Error accessing array bounds', loBarIndex, hiBarIndex, data);
     }
-  },
-
-  _onRangeUpdated: function (loBarIndex, hiBarIndex) {
-    var self = this;
-    if (this.model.get('zoomed')) {
-      this.model.set({ zoom_enabled: false, lo_index: loBarIndex, hi_index: hiBarIndex });
-    } else {
-      this.model.set({ lo_index: loBarIndex, hi_index: hiBarIndex });
-    }
-
-    var updateStats = _.debounce(function () { self._updateStats(); }, 400);
-    updateStats();
   },
 
   _onChangeFilterEnabled: function () {
@@ -424,8 +420,10 @@ module.exports = cdb.core.View.extend({
   },
 
   _resetWidget: function () {
-    this.lockedByUser = true;
-    this.unsettingRange = true;
+    this.filter.unsetRange();
+    this._dataviewModel.disableFilter();
+    this.histogramChartView.unsetBounds();
+    this.miniHistogramChartView.hide();
     this.model.set({
       zoomed: false,
       zoom_enabled: false,
@@ -433,9 +431,6 @@ module.exports = cdb.core.View.extend({
       lo_index: null,
       hi_index: null
     });
-    this._dataviewModel.disableFilter();
-    this.filter.unsetRange();
-    this.histogramChartView.unsetBounds();
-    this.miniHistogramChartView.hide();
+    this._updateStats();
   }
 });

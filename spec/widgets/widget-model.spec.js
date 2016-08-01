@@ -127,4 +127,13 @@ describe('widgets/widget-model', function () {
       expect(this.model.stopListening).toHaveBeenCalled();
     });
   });
+
+  describe('getState', function () {
+    it('should only return states different from default', function () {
+      this.model.setState({
+        collapsed: true
+      });
+      expect(this.model.getState()).toEqual({collapsed: true});
+    });
+  });
 });
