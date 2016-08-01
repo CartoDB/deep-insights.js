@@ -12,8 +12,8 @@ module.exports = cdb.core.View.extend({
   className: 'CDB-Widget-title CDB-Widget-contentSpaced',
 
   events: {
-    'click .js-applySizes': '_applySizes',
-    'click .js-cancelSizes': '_cancelSizes'
+    'click .js-autoStyle': '_autoStyle',
+    'click .js-cancelAutoStyle': '_cancelAutoStyle'
   },
 
   initialize: function () {
@@ -27,7 +27,7 @@ module.exports = cdb.core.View.extend({
     this.$el.html(
       template({
         title: this.widgetModel.get('title'),
-        isSizesApplied: this.dataviewModel.get('histogram_sizes'),
+        isAutoStyle: this.widgetModel.get('autoStyle'),
         isCollapsed: this.widgetModel.get('collapsed')
       })
     );
@@ -37,8 +37,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _initBinds: function () {
-    this.widgetModel.bind('change:title change:collapsed', this.render, this);
-    this.dataviewModel.bind('change:histogram_sizes', this.render, this);
+    this.widgetModel.bind('change:title change:collapsed change:autoStyle', this.render, this);
     this.add_related_model(this.dataviewModel);
   },
 
@@ -50,12 +49,12 @@ module.exports = cdb.core.View.extend({
     this.addView(sizesTooltip);
   },
 
-  _applySizes: function () {
-    this.dataviewModel.set('histogram_sizes', true);
+  _autoStyle: function () {
+    this.widgetModel.autoStyle();
   },
 
-  _cancelSizes: function () {
-    this.dataviewModel.set('histogram_sizes', false);
+  _cancelAutoStyle: function () {
+    this.widgetModel.cancelAutoStyle();
   }
 
 });

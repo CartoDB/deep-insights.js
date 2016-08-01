@@ -1,7 +1,7 @@
 var _ = require('underscore');
 var WidgetModel = require('../widget-model');
-var CategoryColors = require('./category-colors');
 var LockedCategoriesCollection = require('./locked-categories-collection');
+var AutoStylerFactory = require('../auto-style/factory');
 
 /**
  * Model for a category widget
@@ -12,20 +12,35 @@ module.exports = WidgetModel.extend({
     {
       type: 'category',
       search: false,
-      locked: false,
-      isColorsApplied: false
+      locked: false
     },
     WidgetModel.prototype.defaults
   ),
 
+  defaultState: _.extend(
+    {
+      acceptedCategories: [],
+      locked: false,
+      autoStyle: false
+    },
+    WidgetModel.prototype.defaultState
+  ),
+
   initialize: function () {
     WidgetModel.prototype.initialize.apply(this, arguments);
-    this.colors = new CategoryColors();
     this.lockedCategories = new LockedCategoriesCollection();
-
+    this.autoStyler = AutoStylerFactory.get(this.dataviewModel);
     this.listenTo(this.dataviewModel, 'change:allCategoryNames', this._onDataviewAllCategoryNamesChange);
     this.on('change:locked', this._onLockedChange, this);
     this.on('change:collapsed', this._onCollapsedChange, this);
+    this.dataviewModel.filter.on('change', function () {
+      this.set('acceptedCategories', this._acceptedCategories().pluck('name'));
+    }, this);
+    this.dataviewModel.once('change:allCategoryNames', function () {
+      if (this.get('autoStyle')) {
+        this.autoStyle();
+      }
+    }, this);
   },
 
   setupSearch: function () {
@@ -55,16 +70,28 @@ module.exports = WidgetModel.extend({
     this.lockedCategories.reset([]);
   },
 
-  applyColors: function () {
-    this.set('isColorsApplied', true);
+  autoStyle: function () {
+    var layer = this.dataviewModel.layer;
+    if (!layer.get('initialStyle')) {
+      var initialStyle = layer.get('cartocss');
+      if (!initialStyle && layer.get('meta')) {
+        initialStyle = layer.get('meta').cartocss;
+      }
+      layer.set('initialStyle', initialStyle);
+    }
+    this.autoStyler.colors.updateData(this.dataviewModel.get('allCategoryNames'));
+    var style = this.autoStyler.getStyle();
+    layer.set('cartocss', style);
+    this.set('autoStyle', true);
   },
 
-  cancelColors: function () {
-    this.set('isColorsApplied', false);
+  cancelAutoStyle: function () {
+    this.dataviewModel.layer.restoreCartoCSS();
+    this.set('autoStyle', false);
   },
 
-  isColorApplied: function () {
-    return this.get('isColorsApplied');
+  isAutoStyle: function () {
+    return this.get('autoStyle');
   },
 
   isLocked: function () {
@@ -113,9 +140,8 @@ module.exports = WidgetModel.extend({
   },
 
   _onDataviewAllCategoryNamesChange: function (m, names) {
-    this.colors.updateData(names);
-    if (this.isColorApplied()) {
-      this.applyColors();
+    if (!this.isAutoStyle()) {
+      this.autoStyler.colors.updateData(names);
     }
   },
 

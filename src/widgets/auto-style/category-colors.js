@@ -1,6 +1,6 @@
 var _ = require('underscore');
-var colors = ['#2CA095', '#E5811B', '#4A4DBA', '#AD2BAD', '#559030', '#E1C221']; // Demo colors
-var defaultColor = '#CCC';
+var CartoColor = require('cartocolor');
+var colorScales = [CartoColor.Bold[5]]; // Demo colors
 
 /**
  *  Class to set categories to each color
@@ -12,7 +12,7 @@ var defaultColor = '#CCC';
 
 function CategoryColors () {
   this.colors = {};
-  _.each(colors, function (c) {
+  _.each(colorScales[0], function (c) {
     this.colors[c] = null;
   }, this);
 }
@@ -51,7 +51,7 @@ CategoryColors.prototype.getColorByCategory = function (category) {
       return i;
     }
   }
-  return defaultColor;
+  return '#A5AA99';
 };
 
 CategoryColors.prototype.getCategoryByColor = function (color) {
