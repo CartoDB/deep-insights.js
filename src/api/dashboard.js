@@ -65,8 +65,25 @@ Dashboard.prototype = {
   },
 
   onStateChanged: function (callback) {
-    this._dashboard.widgets._widgetsCollection.bind('change', function () {
-      callback(this.getState(), this.getDashboardURL());
+    var firstLoad = true;
+    var widgets = this._dashboard.widgets._widgetsCollection;
+
+    widgets.bind('change', function () {
+      var triggerCallback = true;
+
+      if (firstLoad) {
+        var widgetsNotLoaded = _.filter(widgets.dataviewModel, function (mdl) {
+          return mdl._pending === true;
+        });
+        console.log(arguments[0], widgetsNotLoaded);
+        if (widgetsNotLoaded.length !== 0) {
+          triggerCallback = false;
+        } else {
+          firstLoad = false;
+        }
+      }
+
+      triggerCallback && callback(this.getState(), this.getDashboardURL());
     }, this);
     this._dashboard.vis.map.bind('change', function () {
       callback(this.getState(), this.getDashboardURL());

@@ -52,6 +52,19 @@ module.exports = WidgetModel.extend({
     this.set('autoStyle', false);
   },
 
+  setState: function (state) {
+    if (state && state.start && state.end) {
+      this.dataviewModel.set({
+        start: state.start,
+        end: state.end
+      }, {
+        silent: true
+      });
+    }
+
+    this.set(_.omit(state, 'start', 'end'));
+  },
+
   getState: function () {
     var state = WidgetModel.prototype.getState.call(this);
     var start = this.dataviewModel.get('start');
@@ -66,9 +79,11 @@ module.exports = WidgetModel.extend({
     };
     if (checkRoughEqual(start, min)) {
       state.min = min;
+      state.start = start;
     }
     if (checkRoughEqual(end, max)) {
       state.max = max;
+      state.end = end;
     }
     return state;
   }
