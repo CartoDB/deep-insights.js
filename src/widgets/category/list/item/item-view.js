@@ -32,12 +32,13 @@ module.exports = cdb.core.View.extend({
 
     this.$el.html(
       template({
+        customColor: this.widgetModel.isAutoStyle(),
         isAggregated: this.model.get('agg'),
         name: name,
         value: value,
         formattedValue: formatter.formatNumber(value),
         percentage: ((value / this.dataviewModel.get('max')) * 100),
-        color: this.widgetModel.getColor(name),
+        color: this.widgetModel.autoStyler.colors.getColorByCategory(name),
         isDisabled: !this.model.get('selected') ? 'is-disabled' : '',
         isAccepted: isAccepted,
         prefix: this.widgetModel.get('prefix'),

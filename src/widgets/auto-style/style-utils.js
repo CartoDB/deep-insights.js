@@ -1,11 +1,3 @@
-var _ = require('underscore');
-
-var ATTR_TO_NUMBER = {
-  'marker-fill': 1,
-  'line-color': 2,
-  'polygon-fill': 3
-};
-
 function getAttrRegex (attr, multi) {
   return new RegExp('\\' + 's' + attr + ':.*?(;|\n)', multi ? 'g' : '');
 }
@@ -28,10 +20,6 @@ function insertCartoCSSAttribute (cartocss, attrib, flag) {
   return cartocss.replace(flag, attrib);
 }
 
-function createEmtpyLayer (cartocss, attr) {
-  return "#layer ['mapnik::geometry_type'=" + ATTR_TO_NUMBER[attr] + '] {  } ' + cartocss;
-}
-
 function replaceWrongSpaceChar (cartocss) {
   return cartocss.replace(new RegExp(String.fromCharCode(160), 'g'), ' ');
 }
@@ -48,7 +36,7 @@ function changeStyle (cartocss, attr, newStyle) {
   return insertCartoCSSAttribute(
             removeEmptyLayer(
               removeAttr(
-                setFlagInCartocss(createEmtpyLayer(cartocss, attr), attr, flag),
+                setFlagInCartocss(cartocss, attr, flag),
                 attr
               )
             ),
@@ -59,9 +47,6 @@ function changeStyle (cartocss, attr, newStyle) {
 }
 
 module.exports = {
-  changeStyle: _.memoize(changeStyle, function (css, attr, style) {
-    return css + attr + style;
-  }),
-  getAttrRegex: getAttrRegex,
+  changeStyle: changeStyle,
   replaceWrongSpaceChar: replaceWrongSpaceChar
 };

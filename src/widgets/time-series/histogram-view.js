@@ -50,7 +50,7 @@ module.exports = cdb.core.View.extend({
   _createHistogramView: function () {
     this._chartView = new HistogramChartView({
       type: 'time',
-      chartBarColor: this._timeseriesModel.getWidgetColor() || '#F2CC8F',
+      chartBarColorClass: 'CDB-Chart-bar--timeSeries',
       animationSpeed: 100,
       margin: {
         top: 4,
@@ -65,8 +65,7 @@ module.exports = cdb.core.View.extend({
       height: this.defaults.histogramChartHeight,
       data: this.model.getData(),
       originalData: this._originalData,
-      displayShadowBars: true,
-      widgetModel: this._timeseriesModel
+      displayShadowBars: true
     });
     this.addView(this._chartView);
     this.$el.append(this._chartView.render().el);

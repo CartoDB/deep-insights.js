@@ -1,19 +1,11 @@
 var _ = require('underscore');
-var colorScales = [
+var colorScales = [[
   '#7F3C8D',
   '#11A579',
   '#3969AC',
   '#F2B701',
   '#E73F74'
-]; // Demo colors
-
-function getColorRange (styles) {
-  var colorRange = styles && styles.definition &&
-      styles.definition.color &&
-      styles.definition.color.range;
-
-  return colorRange || colorScales;
-}
+]]; // Demo colors
 
 /**
  *  Class to set categories to each color
@@ -23,17 +15,12 @@ function getColorRange (styles) {
  *
  */
 
-function CategoryColors (styles) {
-  this.updateColors(styles);
-}
-
-CategoryColors.prototype.updateColors = function (styles) {
-  var colorRange = getColorRange(styles);
+function CategoryColors () {
   this.colors = {};
-  _.each(colorRange, function (c) {
+  _.each(colorScales[0], function (c) {
     this.colors[c] = null;
   }, this);
-};
+}
 
 CategoryColors.prototype.updateData = function (d) {
   // Remove categories from colors where they are not present anymore

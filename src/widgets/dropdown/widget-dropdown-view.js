@@ -15,9 +15,7 @@ module.exports = cdb.core.View.extend({
 
   events: {
     'click .js-toggleNormalized': '_toggleNormalized',
-    'click .js-toggleCollapsed': '_toggleCollapsed',
-    'click .js-removeWidget': '_removeWidget',
-    'click .js-editWidget': '_editWidget'
+    'click .js-toggleCollapsed': '_toggleCollapsed'
   },
 
   initialize: function (opts) {
@@ -50,14 +48,6 @@ module.exports = cdb.core.View.extend({
     this._$container.delegate(this._target, 'click',
       _.bind(this._toggleClick, this)
     );
-  },
-
-  _removeWidget: function () {
-    this.model.trigger('removeWidget', this.model);
-  },
-
-  _editWidget: function () {
-    this.model.trigger('editWidget', this.model);
   },
 
   _bindGlobalClick: function () {
