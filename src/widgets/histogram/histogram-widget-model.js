@@ -1,4 +1,4 @@
-var WidgetModel = require('../widget-model');
+var WidgetModel = require('../widget-model-base');
 var _ = require('underscore');
 
 /**

@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var WidgetModel = require('./widgets/widget-model');
+var WidgetModel = require('./widgets/widget-model-base');
 var CategoryWidgetModel = require('./widgets/category/category-widget-model');
 var HistogramWidgetModel = require('./widgets/histogram/histogram-widget-model');
 var TimeSeriesWidgetModel = require('./widgets/time-series/time-series-widget-model');

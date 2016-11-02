@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var WidgetModel = require('../widget-model');
+var WidgetModel = require('../widget-model-base');
 var LockedCategoriesCollection = require('./locked-categories-collection');
 
 /**

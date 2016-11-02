@@ -63,6 +63,14 @@ module.exports = cdb.core.Model.extend({
     }
   },
 
+  isAutoStyleEnabled: function () {
+    return AutoStyle.isEnabled(this);
+  },
+
+  isAutoStyleActive: function () {
+    return AutoStyle.isActive(this);
+  },
+
   stopAutoStyle: function (noRestore) {
     // TODO: should this be done by the caller?
     if (!noRestore) {
@@ -78,6 +86,10 @@ module.exports = cdb.core.Model.extend({
       definition: AutoStyle.getDefFromCCSS(ccss),
       cartocss: ccss
     };
+  },
+
+  getColor: function () {
+    return AutoStyle.getFrom(this).widgetConf().getColor();
   },
 
   setState: function (state) {
