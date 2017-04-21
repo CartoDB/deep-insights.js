@@ -58,11 +58,9 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
     }
   }
 
-  var vis = cdb.createVis(dashboardView.$('#map'), vizJSON, _.extend(opts, {
-    skipMapInstantiation: true
-  }));
+  var vis = cdb.createVis(dashboardView.$('#map'), vizJSON, opts);
 
-  vis.once('load', function (vis) {
+  vis.once('ready', function (vis) {
     if (stateFromURL && !_.isEmpty(stateFromURL.map)) {
       if (!_.isUndefined(stateFromURL.map.ne) && !_.isUndefined(stateFromURL.map.sw)) {
         vis.map.setBounds([stateFromURL.map.ne, stateFromURL.map.sw]);
@@ -82,6 +80,7 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
       'time-series': widgetsService.createTimeSeriesModel.bind(widgetsService),
       category: widgetsService.createCategoryModel.bind(widgetsService)
     };
+
     vizJSON.widgets.forEach(function (d) {
       // Flatten the data structure given in vizJSON, the widgetsService will use whatever it needs and ignore the rest
       var attrs = _.extend({}, d, d.options);
@@ -99,17 +98,13 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
           layer = vis.map.layers.at(d.layerIndex);
         }
 
-        newWidgetModel(attrs, layer, state, {autoStyleEnabled: opts.autoStyle});
+        newWidgetModel(attrs, layer, state, {
+          autoStyleEnabled: opts.autoStyle
+        });
       } else {
         cdb.log.error('No widget found for type ' + d.type);
       }
     });
-
-    dashboardView.render();
-
-    if (widgets.size() > 0) {
-      vis.invalidateSize();
-    }
 
     var callbackObj = {
       dashboardView: dashboardView,
@@ -124,14 +119,13 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
       vis: vis
     };
 
-    vis.instantiateMap({
-      success: function () {
-        callback && callback(null, callbackObj);
-      },
-      error: function (errorMessage) {
-        callback && callback(new Error(errorMessage), callbackObj);
-      }
-    });
+    dashboardView.render();
+
+    callback(null, callbackObj);
+
+    if (widgets.size() > 0) {
+      vis.invalidateSize();
+    }
   });
 };
 
