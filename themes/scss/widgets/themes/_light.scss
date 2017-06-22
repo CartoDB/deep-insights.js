@@ -217,8 +217,20 @@ $timeSliderBorder: rgba(#fff, 1);
     stroke-width: 2;
     fill: $commonBkg;
   }
+  .CDB-Chart-axisTipRect {
+    fill: #eeeeee;
+  }
+  .CDB-Chart-axisTipRect--inverted {
+    font-weight: bold;
+    fill: $primary;
+  }
   .CDB-Chart-axisTipText {
-    fill: $link;
+    font-weight: bold;
+    fill: $primary;
+    font-size: 11px;
+  }
+  .CDB-Chart-axisTipText--inverted {
+    stroke: #eeeeee;
   }
   .CDB-Chart-handleLine {
     stroke: $link;
@@ -251,9 +263,6 @@ $timeSliderBorder: rgba(#fff, 1);
   }
   .CDB-Chart-axis line {
     stroke: $chartLine;
-  }
-  .CDB-Chart-axisTipRect {
-    fill: $commonBkg;
   }
 
   // TimeSlider
