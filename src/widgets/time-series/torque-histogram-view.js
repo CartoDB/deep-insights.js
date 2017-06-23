@@ -61,8 +61,7 @@ module.exports = HistogramView.extend({
     var steps = this._torqueLayerModel.get('steps');
     var step = steps < dataLength ? loBarIndex * steps / dataLength : loBarIndex;
 
-    HistogramView.prototype.resetFilter.apply(this);
-
+    this._torqueLayerModel.resetRenderRange();
     this._torqueLayerModel.set({ step: step });
   },
 
