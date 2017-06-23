@@ -75,10 +75,13 @@
   margin-right: -7px;
 }
 
-.CDB-Widget-content--histogram,
-.CDB-Widget-content--timeSeries {
+.CDB-Chart--histogram {
   margin-bottom: $baseSize * 2;
   margin-top: $baseSize * 4;
+}
+
+.CDB-Widget-content--histogram,
+.CDB-Widget-content--timeSeries {
   touch-action: none;
   -ms-touch-action: none;
 }
@@ -121,8 +124,10 @@
     max-height: auto;
     margin-bottom: 2px;
   }
-  .CDB-Widget-content--timeSeries {
+  .CDB-Widget-content.CDB-Widget-content--timeSeries {
     width: 100%;
+    margin-right: 0;
+    margin-left: 0;
   }
   .CDB-Widget-header,
   .CDB-Widget-footer,

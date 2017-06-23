@@ -52,7 +52,7 @@ module.exports = cdb.core.View.extend({
 
     // using tagName: 'svg' doesn't work,
     // and w/o class="" d3 won't instantiate properly
-    this.setElement($('<svg class=""></svg>')[0]);
+    this.setElement($('<svg class="CDB-Chart--histogram"></svg>')[0]);
 
     this._widgetModel = this.options.widgetModel;
     this._dataviewModel = this.options.dataviewModel;
@@ -145,6 +145,9 @@ module.exports = cdb.core.View.extend({
   },
 
   _updateAxisTip: function (className) {
+    var model = this.model.get(className + '_axis_tip');
+    if (model === undefined) { return; }
+  
     var textLabel = this.chart.select('.CDB-Chart-axisTipText.CDB-Chart-axisTip-' + className);
     var axisTip = this.chart.select('.CDB-Chart-axisTip.CDB-Chart-axisTip-' + className);
     var rectLabel = this.chart.select('.CDB-Chart-axisTipRect.CDB-Chart-axisTip-' + className);
@@ -153,9 +156,13 @@ module.exports = cdb.core.View.extend({
 
     triangle.style('opacity', '1');
 
-    textLabel.data([this.model.get(className + '_axis_tip')]).text(function (d) {
+    textLabel.data([model]).text(function (d) {
       return this.formatter(d);
     }.bind(this));
+
+    if (!textLabel.node()) {
+      return;
+    }
 
     var textBBox = textLabel.node().getBBox();
     var width = textBBox.width;
@@ -287,6 +294,8 @@ module.exports = cdb.core.View.extend({
     this._calcBarWidth();
     this._generateChartContent();
     this._generateShadowBars();
+    this._updateAxisTip('left');
+    this._updateAxisTip('right');
   },
 
   refresh: function () {
@@ -1236,6 +1245,8 @@ module.exports = cdb.core.View.extend({
     var data = this.model.get('data');
 
     this._calcBarWidth();
+    // Remove spacing if not enough room for the smallest case
+    var spacing = ((data.length * 2) - 1) > this.chartWidth() ? 0 : 1; 
 
     var bars = this.chart.append('g')
       .attr('transform', 'translate(0, 0)')
@@ -1253,7 +1264,7 @@ module.exports = cdb.core.View.extend({
       })
       .attr('y', self.chartHeight())
       .attr('height', 0)
-      .attr('width', Math.max(0.5, this.barWidth - 1));
+      .attr('width', Math.max(1, this.barWidth - spacing));
 
     bars
       .transition()
