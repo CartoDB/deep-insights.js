@@ -138,9 +138,9 @@ module.exports = cdb.core.View.extend({
     var bFirst = first.node().getBoundingClientRect();
     var bSecond = second.node().getBoundingClientRect();
 
-    return !(bFirst.right < bSecond.left || 
+    return !(bFirst.right < bSecond.left ||
                 bFirst.left > bSecond.right ||
-                bFirst.bottom < bSecond.top || 
+                bFirst.bottom < bSecond.top ||
                 bFirst.top > bSecond.bottom);
   },
 
@@ -152,14 +152,13 @@ module.exports = cdb.core.View.extend({
     var triangle = handle.select('.CDB-Chart-axisTipTriangle');
 
     triangle.style('opacity', '1');
-    
+
     textLabel.data([this.model.get(className + '_axis_tip')]).text(function (d) {
       return this.formatter(d);
     }.bind(this));
 
     var textBBox = textLabel.node().getBBox();
     var width = textBBox.width;
-    var height = axisTip.node().getBBox().height;
     rectLabel.attr('width', width + TIP_H_PADDING);
     textLabel.attr('dx', TIP_H_PADDING / 2);
     textLabel.attr('dy', textBBox.height - Math.abs((textBBox.height - rectLabel.node().getBBox().height) / 2));
@@ -275,7 +274,6 @@ module.exports = cdb.core.View.extend({
       triangle.transition().duration(200).attr('opacity', 1);
     }
   },
-
 
   _updateAxisTipOpacity: function (className) {
     if (this.model.get('dragging')) {
@@ -694,12 +692,12 @@ module.exports = cdb.core.View.extend({
         .on('brushend', this._onBrushEnd);
 
     // create svg group with class brush and call brush on it
-    var brushg = this.chart.append("g")
-        .attr("class", "Brush")
+    var brushg = this.chart.append('g')
+        .attr('class', 'Brush')
         .call(brush);
 
     // set brush extent to rect and define objects height
-    brushg.selectAll("rect")
+    brushg.selectAll('rect')
         .attr('y', 0)
         .attr('height', this.chartHeight())
         .on('mouseout', this._onMouseOut)
@@ -715,8 +713,8 @@ module.exports = cdb.core.View.extend({
 
   _onBrushMove: function () {
     if (!this.brush.empty()) {
-      this.chart.classed('is-selectable', true)
-      this._axis.classed('is-disabled', true)
+      this.chart.classed('is-selectable', true);
+      this._axis.classed('is-disabled', true);
       this.model.set({ dragging: true });
       this._selectBars();
       this._setupFillColor();
@@ -726,7 +724,6 @@ module.exports = cdb.core.View.extend({
   },
 
   _onBrushEnd: function () {
-    var data = this.model.get('data');
     var brush = this.brush;
     var loBarIndex = this._getLoBarIndex();
     var hiBarIndex = this._getHiBarIndex();
@@ -846,8 +843,8 @@ module.exports = cdb.core.View.extend({
         });
       } else {
         this.model.set({
-            left_axis_tip: this.xAxisScale(leftX + this.options.handleWidth / 2),
-            right_axis_tip: this.xAxisScale(rightX + this.options.handleWidth / 2)
+          left_axis_tip: this.xAxisScale(leftX + this.options.handleWidth / 2),
+          right_axis_tip: this.xAxisScale(rightX + this.options.handleWidth / 2)
         });
       }
     }
@@ -866,19 +863,19 @@ module.exports = cdb.core.View.extend({
       .attr('class', 'CDB-Chart-axisTip CDB-Chart-axisTip-' + className)
       .attr('transform', 'translate(0,' + yPos + ')');
 
-    var triangle = handle.append('path')
+    handle.append('path')
       .attr('class', 'CDB-Chart-axisTipRect CDB-Chart-axisTipTriangle')
       .attr('transform', 'translate(' + ((this.options.handleWidth / 2) - 4) + ', ' + yTriangle + ')')
       .attr('d', 'M 0 0 L ' + TRIANGLE_SIDE + ' 0 L ' + (TRIANGLE_SIDE / 2) + sign + TRIANGLE_HEIGHT + ' L 0 0 z')
       .style('opacity', '0');
 
-    var rectLabel = axisTip.append('rect')
+    axisTip.append('rect')
       .attr('class', 'CDB-Chart-axisTipRect CDB-Chart-axisTip-' + className)
-      .attr('rx', "2")
-      .attr('ry', "2")
+      .attr('rx', '2')
+      .attr('ry', '2')
       .attr('height', TIP_RECT_HEIGHT);
 
-    var textLabel = axisTip.append('text')
+    axisTip.append('text')
       .attr('class', 'CDB-Text CDB-Size-small CDB-Chart-axisTipText CDB-Chart-axisTip-' + className)
       .attr('dy', '11')
       .attr('dx', '0')
@@ -887,7 +884,6 @@ module.exports = cdb.core.View.extend({
 
   _generateHandle: function (className) {
     var opts = { width: this.options.handleWidth, height: this.options.handleHeight, radius: this.options.handleRadius };
-    var yPos = (this.chartHeight() / 2) - (this.options.handleHeight / 2);
 
     var handle = this.chart.select('.CDB-Chart-handles')
       .append('g')
