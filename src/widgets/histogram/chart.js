@@ -730,7 +730,7 @@ module.exports = cdb.core.View.extend({
 
       return;
     } else {
-      // for some reason d3 launches several brushend
+      // for some reason d3 launches several brushend events
       if (!d3.event.sourceEvent) {
         return;
       }
