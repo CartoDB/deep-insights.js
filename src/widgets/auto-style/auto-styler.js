@@ -11,7 +11,14 @@ var AutoStyler = cdb.core.Model.extend({
   },
 
   _getLayerHeader: function (symbol) {
-    return '#layer [mapnik-geometry-type=' + AutoStyler.MAPNIK_MAPPING[symbol] + ']{';
+    var type = '[mapnik-geometry-type=' + AutoStyler.MAPNIK_MAPPING[symbol] + ']';
+
+    if (symbol === 'line') {
+      type.substring(0, type.length - 1);
+      type += ' || mapnik-geometry-type=' + AutoStyler.MAPNIK_MAPPING['polygon'] + ']';
+    }
+
+    return '#layer [mapnik-geometry-type=' + type + ']{';
   },
 
   getPreservedWidth: function () {
