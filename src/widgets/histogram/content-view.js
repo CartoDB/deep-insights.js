@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var cdb = require('cartodb.js');
-var formatter = require('../../formatter');
+var formatter = require('../../formatter').default;
 var HistogramTitleView = require('./histogram-title-view');
 var HistogramChartView = require('./chart');
 var placeholder = require('./placeholder.tpl');

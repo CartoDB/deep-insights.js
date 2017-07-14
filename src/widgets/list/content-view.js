@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var cdb = require('cartodb.js');
-var format = require('../../formatter');
+var format = require('../../formatter').default;
 var WidgetListItemsView = require('./items-view');
 var WidgetListPaginatorView = require('./paginator-view');
 var WidgetListEdgesView = require('./edges-view');

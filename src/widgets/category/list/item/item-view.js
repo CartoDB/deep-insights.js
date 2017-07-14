@@ -1,5 +1,5 @@
 var cdb = require('cartodb.js');
-var formatter = require('../../../../formatter');
+var formatter = require('../../../../formatter').default;
 var _ = require('underscore');
 var clickableTemplate = require('./item-clickable-template.tpl');
 var unclickableTemplate = require('./item-unclickable-template.tpl');

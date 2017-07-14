@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var cdb = require('cartodb.js');
-var formatter = require('../../../formatter');
+var formatter = require('../../../formatter').default;
 var template = require('./stats-template.tpl');
 var animationTemplate = require('./cats-template.tpl');
 var AnimateValues = require('../../animate-values');

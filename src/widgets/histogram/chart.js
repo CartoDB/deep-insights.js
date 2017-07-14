@@ -4,7 +4,7 @@ var d3 = require('d3');
 var d3Interpolate = require('d3-interpolate');
 var cdb = require('cartodb.js');
 var tinycolor = require('tinycolor2');
-var formatter = require('../../formatter');
+var formatter = require('../../formatter').default;
 var timestampHelper = require('../../util/timestamp-helper');
 var FILTERED_COLOR = '#1181FB';
 var UNFILTERED_COLOR = 'rgba(0, 0, 0, 0.06)';
@@ -95,6 +95,7 @@ module.exports = cdb.core.View.extend({
     this.hide(); // will be toggled on width change
 
     this.formatter = formatter.formatNumber;
+
     if (this._isDateTimeSeries()) {
       this.formatter = formatter.timestampFactory(this._dataviewModel.get('aggregation'));
       this.options.divisionWidth = this._calculateDivisionWithByAggregation(this._dataviewModel.get('aggregation'));

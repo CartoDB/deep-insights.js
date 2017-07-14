@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var WidgetView = require('./widget-view');
+var WidgetView = require('./widget-view.ts');
 
 var WidgetViewFactory = function (defs) {
   this.defs = [];

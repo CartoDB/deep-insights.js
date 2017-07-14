@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var format = require('../../formatter');
+var formatter = require('../../formatter').default;
 var cdb = require('cartodb.js');
 var template = require('./item-template.tpl');
 
@@ -55,7 +55,7 @@ module.exports = cdb.core.View.extend({
 
     _.each(data, function (value, key) {
       var title = columnTitles && columnTitles[i] || key;
-      arr.push([ title, format.formatValue(value) ]);
+      arr.push([ title, formatter.formatValue(value) ]);
       ++i;
     });
 
