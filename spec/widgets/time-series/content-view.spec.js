@@ -7,7 +7,10 @@ describe('widgets/time-series/content-view', function () {
   beforeEach(function () {
     var vis = specHelper.createDefaultVis();
     this.dataviewModel = vis.dataviews.createHistogramModel(vis.map.layers.first(), {
-      column: 'col'
+      column: 'col',
+      source: {
+        id: 'a0'
+      }
     });
     this.originalData = this.dataviewModel.getUnfilteredDataModel();
     this.originalData.set({
@@ -20,7 +23,9 @@ describe('widgets/time-series/content-view', function () {
       this.options = options;
     }.bind(this);
 
-    var widgetModel = new WidgetModel({}, {
+    var widgetModel = new WidgetModel({
+      show_source: true
+    }, {
       dataviewModel: this.dataviewModel
     });
 
@@ -32,28 +37,24 @@ describe('widgets/time-series/content-view', function () {
     });
   });
 
-  it('should not fetch new data until unfilteredData is loaded', function () {
-    expect(this.dataviewModel.fetch).not.toHaveBeenCalled();
-    this.originalData.trigger('change:data', this.originalData);
-    expect(this.dataviewModel.fetch).toHaveBeenCalled();
-  });
+  describe('.render', function () {
+    describe('with data', function () {
+      beforeEach(function () {
+        this.originalData.set('data', [], { silent: true });
+        this.view.render();
+      });
 
-  describe('when unfilteredData is loaded', function () {
-    beforeEach(function () {
-      this.originalData.trigger('change:data', this.originalData);
-      this.dataviewModel.trigger('change:data');
+      it('should render placeholder', function () {
+        expect(this.view.$el.html()).not.toBe('');
+        expect(this.view.$('.CDB-Widget-content--timeSeries').length).toBe(1);
+      });
+
+      it('should not render chart just yet since have no data', function () {
+        expect(this.view.$el.html()).not.toContain('<svg');
+      });
     });
 
-    it('should render placeholder', function () {
-      expect(this.view.$el.html()).not.toBe('');
-      expect(this.view.$('.CDB-Widget-content--timeSeries').length).toBe(1);
-    });
-
-    it('should not render chart just yet since have no data', function () {
-      expect(this.view.$el.html()).not.toContain('<svg');
-    });
-
-    describe('when data is provided', function () {
+    describe('without data', function () {
       beforeEach(function () {
         var timeOffset = 10000;
         var startTime = (new Date()).getTime() - timeOffset;
@@ -73,8 +74,29 @@ describe('widgets/time-series/content-view', function () {
       });
 
       it('should render chart', function () {
+        this.view.render();
+
+        expect(this.view.$('.js-header').length).toBe(1);
+        expect(this.view.$('.js-content').length).toBe(1);
+        expect(this.view._histogramView).toBeDefined();
+        expect(this.view._headerView).toBeDefined();
+        expect(this.view._dropdownView).toBeDefined();
+        expect(this.view.$('.js-header .CDB-Widget-info').length).toBe(1);
         expect(this.view.render().$el.html()).toContain('<svg');
       });
+    });
+  });
+
+  describe('.initBinds', function () {
+    it('should hook up events properly', function () {
+      this.view._dataviewModel.off();
+      spyOn(this.view, 'render');
+
+      this.view._initBinds();
+
+      // DataviewModel events
+      this.view._dataviewModel.trigger('change:data');
+      expect(this.view.render).toHaveBeenCalled();
     });
   });
 });

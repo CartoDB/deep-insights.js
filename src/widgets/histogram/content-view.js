@@ -8,6 +8,10 @@ var template = require('./content.tpl');
 var DropdownView = require('../dropdown/widget-dropdown-view');
 var AnimateValues = require('../animate-values.js');
 var animationTemplate = require('./animation-template.tpl');
+var layerColors = require('../../util/layer-colors');
+var analyses = require('../../data/analyses');
+
+var TOOLTIP_TRIANGLE_HEIGHT = 4;
 
 /**
  * Widget content view for a histogram
@@ -218,15 +222,28 @@ module.exports = cdb.core.View.extend({
     this._unbinds();
 
     var data = this._dataviewModel.getData();
+    var hasNulls = this._dataviewModel.hasNulls();
     var originalData = this._originalData.getData();
     var isDataEmpty = !_.size(data) && !_.size(originalData);
+
+    var sourceId = this._dataviewModel.get('source').id;
+    var letter = layerColors.letter(sourceId);
+    var sourceColor = layerColors.getColorForLetter(letter);
+    var sourceType = this._dataviewModel.getSourceType() || '';
+    var layerName = this._dataviewModel.getLayerName() || '';
 
     this.$el.html(
       template({
         title: this.model.get('title'),
+        sourceId: sourceId,
+        sourceType: analyses.title(sourceType),
         showStats: this.model.get('show_stats'),
+        showNulls: hasNulls,
+        showSource: this.model.get('show_source') && letter !== '',
         itemsCount: !isDataEmpty ? data.length : '-',
-        isCollapsed: !!this.model.get('collapsed')
+        isCollapsed: !!this.model.get('collapsed'),
+        sourceColor: sourceColor,
+        layerName: layerName
       })
     );
 
@@ -257,6 +274,7 @@ module.exports = cdb.core.View.extend({
 
   _renderMainChart: function () {
     this.histogramChartView = new HistogramChartView(({
+      type: 'histogram',
       margin: { top: 4, right: 4, bottom: 4, left: 4 },
       hasHandles: true,
       hasAxisTip: true,
@@ -271,7 +289,7 @@ module.exports = cdb.core.View.extend({
       widgetModel: this.model
     }));
 
-    this.$('.js-content').append(this.histogramChartView.el);
+    this.$('.js-chart').append(this.histogramChartView.el);
     this.addView(this.histogramChartView);
 
     this.histogramChartView.bind('on_brush_end', this._onBrushEnd, this);
@@ -283,10 +301,13 @@ module.exports = cdb.core.View.extend({
 
   _renderMiniChart: function () {
     this.miniHistogramChartView = new HistogramChartView(({
+      type: 'histogram',
       className: 'CDB-Chart--mini',
+      mini: true,
       margin: { top: 0, right: 4, bottom: 4, left: 4 },
       height: 40,
       showOnWidthChange: false,
+      dataviewModel: this._dataviewModel,
       data: this._dataviewModel.getData(),
       normalized: this.model.get('normalized'),
       chartBarColor: this.model.getColor() || '#9DE0AD',
@@ -295,7 +316,7 @@ module.exports = cdb.core.View.extend({
     }));
 
     this.addView(this.miniHistogramChartView);
-    this.$('.js-content').append(this.miniHistogramChartView.el);
+    this.$('.js-mini-chart').append(this.miniHistogramChartView.el);
     this.miniHistogramChartView.bind('on_brush_end', this._onMiniRangeUpdated, this);
     this.miniHistogramChartView.render();
   },
@@ -332,11 +353,13 @@ module.exports = cdb.core.View.extend({
     var $tooltip = this.$('.js-tooltip');
 
     if (info && info.data) {
-      var bottom = this.defaults.chartHeight + 3 - info.top;
+      var bottom = this.defaults.chartHeight - info.top;
 
       $tooltip.css({ bottom: bottom, left: info.left });
       $tooltip.text(info.data);
-      $tooltip.css({ left: info.left - $tooltip.width() / 2 });
+      $tooltip.css({
+        left: info.left - $tooltip.width() / 2,
+        bottom: bottom + $tooltip.height() + (TOOLTIP_TRIANGLE_HEIGHT * 1.5) });
       $tooltip.fadeIn(70);
     } else {
       this._clearTooltip();

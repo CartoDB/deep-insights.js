@@ -12,7 +12,8 @@ var AutoStylerFactory = require('./auto-style/factory');
 module.exports = cdb.core.Model.extend({
   defaults: {
     attrsNames: [],
-    show_stats: false
+    show_stats: false,
+    show_source: false
   },
 
   defaultState: {
@@ -22,7 +23,10 @@ module.exports = cdb.core.Model.extend({
   initialize: function (attrs, models, opts) {
     opts = opts || {};
     this.dataviewModel = models.dataviewModel;
-    this.defaults.autoStyleEnabled = opts.autoStyleEnabled;
+
+    // Autostyle could be disabled initially if the styles have an aggregation
+    // If no option, autoStyleEnabled by default
+    this._autoStyleEnabledWhenCreated = opts.autoStyleEnabled === undefined ? true : opts.autoStyleEnabled;
 
     this.activeAutoStyler();
     this.bind('change:style', this.activeAutoStyler, this);
@@ -68,13 +72,12 @@ module.exports = cdb.core.Model.extend({
   },
 
   isAutoStyleEnabled: function () {
-    if (!this.defaults.autoStyleEnabled) return false;
-
     var styles = this.get('style');
 
     if (this.get('type') === 'category' || this.get('type') === 'histogram') {
       if (!styles || !styles.auto_style) {
-        return true;
+        // Only when styles are undefined we check the autostyle option
+        return this._autoStyleEnabledWhenCreated;
       }
 
       return styles && styles.auto_style && styles.auto_style.allowed;
@@ -85,11 +88,14 @@ module.exports = cdb.core.Model.extend({
 
   getWidgetColor: function () {
     var styles = this.get('style');
+    var widgetStyle = styles && styles.widget_style;
+    var widgetColor = widgetStyle && widgetStyle.definition &&
+      widgetStyle.definition.color &&
+      widgetStyle.definition.color.fixed;
+    var widgetColorChanged = widgetStyle && widgetStyle.widget_color_changed ||
+      widgetStyle && !widgetStyle.widget_color_changed && widgetColor !== '#9DE0AD';
 
-    return styles && styles.widget_style &&
-          styles.widget_style.definition &&
-          styles.widget_style.definition.color &&
-          styles.widget_style.definition.color.fixed;
+    return widgetColorChanged && widgetColor;
   },
 
   hasColorsAutoStyle: function () {
@@ -173,6 +179,15 @@ module.exports = cdb.core.Model.extend({
     }
 
     return {};
+  },
+
+  _updateAutoStyle: function (_model, style) {
+    if (this.autoStyler) {
+      this.autoStyler.updateStyle(style);
+    }
+    if (this.isAutoStyle()) {
+      this.reapplyAutoStyle();
+    }
   },
 
   setInitialState: function (state) {

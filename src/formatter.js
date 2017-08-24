@@ -1,5 +1,42 @@
 var _ = require('underscore');
 var d3 = require('d3');
+var moment = require('moment');
+require('moment-timezone');
+
+var AGGREGATION_FORMATS = {
+  second: {
+    display: 'HH:mm:ss',
+    unit: 's'
+  },
+  minute: {
+    display: 'HH:mm L',
+    unit: 'm'
+  },
+  hour: {
+    display: 'HH:mm L',
+    unit: 'h'
+  },
+  day: {
+    display: 'Do MMM YYYY',
+    unit: 'd'
+  },
+  week: {
+    display: 'Do MMM YYYY',
+    unit: 'w'
+  },
+  month: {
+    display: 'MMM YYYY',
+    unit: 'M'
+  },
+  quarter: {
+    display: '[Q]Q YYYY',
+    unit: 'Q'
+  },
+  year: {
+    display: 'YYYY',
+    unit: 'y'
+  }
+};
 
 var format = {};
 
@@ -40,6 +77,14 @@ format.formatDate = function (value) {
   return d3.time.format('%Y-%m-%d')(value);
 };
 
+format.formatTime = function (value) {
+  return d3.time.format('%H:%M:%S %d/%m/%Y')(value);
+};
+
+format.timeFactory = function (format) {
+  return d3.time.format(format);
+};
+
 format.formatValue = function (value) {
   if (_.isNumber(value)) {
     return format.formatNumber(value);
@@ -48,6 +93,19 @@ format.formatValue = function (value) {
     return format.formatDate(value);
   }
   return value;
+};
+
+format.timestampFactory = function (aggregation, offset, localTimezone) {
+  var localOffset = localTimezone ? moment.tz(moment.tz.guess()).utcOffset() * 60 : offset || 0;
+  return function (timestamp) {
+    if (!_.has(AGGREGATION_FORMATS, aggregation)) {
+      return '-';
+    }
+    var format = AGGREGATION_FORMATS[aggregation];
+    var date = moment.unix(timestamp + localOffset).utc();
+    var formatted = date.format(format.display);
+    return formatted;
+  };
 };
 
 module.exports = format;

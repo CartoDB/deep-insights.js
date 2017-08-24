@@ -25,6 +25,7 @@ $chartHandleGrip: rgba(#CCC, 1);
 $chartLine: rgba(#EEE, 1);
 $chartAxis: rgba(#979EA1, 1);
 $chartMiniSelected: rgba(#333, 1);
+$timeSliderBorder: rgba(#FFF, 1);
 
 .CDB-Widget--light {
   border-color: $canvasBkg;
@@ -60,13 +61,13 @@ $chartMiniSelected: rgba(#333, 1);
       background: $linkHover;
     }
   }
-  .CDB-Widget-controlButtonIcon--play {
-    border-left-color: $elementBkg;
-  }
-  .CDB-Widget-controlButtonIcon--pause {
-    &:before,
-    &:after {
-      background-color: $elementBkg;
+
+  .CDB-Widget-controlButton.is-disabled {
+    opacity: 0.24;
+    pointer-events: none;
+    &:hover {
+      border-color: $primary;
+      background: $primary;
     }
   }
 
@@ -213,11 +214,38 @@ $chartMiniSelected: rgba(#333, 1);
   }
   .CDB-Chart-handleRect {
     stroke: $link;
-    stroke-width: 2;
+    stroke-width: 1;
     fill: $commonBkg;
   }
+  .CDB-Chart-staticTip {
+    background: $chartLine;
+  }
+  .CDB-Chart-staticTipText,
+  .CDB-Chart-timeSliderTipText {
+    font-weight: bold;
+  }
+  .CDB-Chart-staticTipText {
+    color: $primary;
+  }
+  .CDB-Chart-timeSliderTip {
+    fill: $primary;
+  }
+  .CDB-Chart-timeSliderTipText {
+    fill: $chartLine;
+  }
+  .CDB-Chart-axisTipRect {
+    fill: $chartLine;
+  }
+  .CDB-Chart-axisTipRect--inverted {
+    font-weight: bold;
+    fill: $primary;
+  }
   .CDB-Chart-axisTipText {
-    fill: $link;
+    font-weight: bold;
+    fill: $primary;
+  }
+  .CDB-Chart-axisTipText--inverted {
+    stroke: $chartLine;
   }
   .CDB-Chart-handleLine {
     stroke: $link;
@@ -251,15 +279,12 @@ $chartMiniSelected: rgba(#333, 1);
   .CDB-Chart-axis line {
     stroke: $chartLine;
   }
-  .CDB-Chart-axisTipRect {
-    fill: $commonBkg;
-  }
 
   // TimeSlider
   .CDB-TimeSlider {
-    fill: $link;
-    stroke-width: 32px;
-    stroke: transparent;
+    fill: $primary;
+    stroke-width: 1px;
+    stroke: $timeSliderBorder;
   }
 
   .CDB-Dropdown {

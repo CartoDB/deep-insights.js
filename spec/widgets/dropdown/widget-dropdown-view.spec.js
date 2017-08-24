@@ -82,4 +82,64 @@ describe('widgets/dropdown/widget-dropdown-view', function () {
     expect(this.view.model.get('widget_dropdown_open')).toBe(false);
     expect($('.js-container').find('.CDB-Dropdown').css('display')).toBe('none');
   });
+
+  describe('canCollapse flag', function () {
+    it('should not render collapse toggle if set to false', function () {
+      this.view = new WidgetDropdownView({
+        model: this.model,
+        target: '.js-button',
+        container: $('body').find('.js-container'),
+        flags: {
+          canCollapse: false
+        }
+      });
+
+      this.view.render();
+
+      expect(this.view.$('.js-toggleCollapsed').length).toBe(0);
+    });
+  });
+
+  describe('localTimezone', function () {
+    var view;
+
+    it('should render local timezone toggle if set to true', function () {
+      var model = new cdb.core.Model({
+        local_timezone: false
+      });
+
+      view = new WidgetDropdownView({
+        model: model,
+        target: '.js-button',
+        container: $('body').find('.js-container'),
+        flags: {
+          localTimezone: true
+        }
+      });
+
+      view.render();
+
+      expect(view.$('.js-toggleLocalTimezone').length).toBe(1);
+    });
+
+    it('should trigger an event when clicking the local timezone option', function () {
+      expect(view.model.get('local_timezone')).toBe(false);
+
+      view.$('.js-toggleLocalTimezone').click();
+
+      expect(view.model.get('local_timezone')).toBe(true);
+    });
+  });
+
+  describe('._adjustVerticalPosition', function () {
+    it('should add `has-top-position` class if it doesnt fit to the bottom', function () {
+      spyOn(this.view, '_getBodyHeight').and.returnValue(20);
+      spyOn(this.view, '_getDropdownBottom').and.returnValue(21);
+
+      this.view.render();
+      this.view._adjustVerticalPosition();
+
+      expect(this.view.$el.hasClass('has-top-position')).toBe(true);
+    });
+  });
 });
