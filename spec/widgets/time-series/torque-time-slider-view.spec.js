@@ -327,8 +327,8 @@ describe('widgets/time-series/torque-time-slider-view', function () {
       this.dataviewModel.filter.setRange(1, 2);
     });
 
-    it('should hide view', function () {
-      expect(this.view.el.style.display).toEqual('none');
+    it('should not hide view', function () {
+      expect(this.view.el.style.display).not.toEqual('none');
     });
 
     describe('when filter is cleared', function () {
