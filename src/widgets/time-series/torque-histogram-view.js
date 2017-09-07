@@ -140,10 +140,7 @@ module.exports = HistogramView.extend({
   _onUpdateCartocss: function (m, cartocss) {
     var ratio;
     if (!this._rangeFilter.isEmpty()) {
-      var loStep = this._timeToStep(this._rangeFilter.get('min'));
-      var hiStep = this._timeToStep(this._rangeFilter.get('max'));
-      var steps = this._torqueLayerModel.get('steps');
-      ratio = (hiStep - loStep) / steps;
+      ratio = this._chartView.getSelectionExtent() / 100;
     } else {
       ratio = 1;
     }

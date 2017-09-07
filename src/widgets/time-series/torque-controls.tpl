@@ -1,4 +1,4 @@
-<button class="CDB-Widget-controlButton <% if (disabled) { %>is-disabled <% } %>" <% if (disabled) { %> disabled <% } %>>
+<button class="CDB-Widget-controlButton">
     <div class="CDB-Widget-controlButtonContent">
 
     <% if (running) { %>

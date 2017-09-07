@@ -171,7 +171,6 @@ module.exports = cdb.core.View.extend({
 
     this.listenTo(this._dataviewModel, 'change:bins', this._updateChartandTimeslider);
     this.listenTo(this._dataviewModel, 'change:column_type', this._createFormatter);
-    this.listenTo(this._dataviewModel.filter, 'change:min change:max', this._onFilterMinMaxChange);
 
     this.listenTo(this._timeSeriesModel, 'change:local_timezone', this._onLocalTimezoneChanged);
 
@@ -183,10 +182,6 @@ module.exports = cdb.core.View.extend({
       this.timeSlider.remove();
     }
     cdb.core.View.prototype.clean.call(this);
-  },
-
-  _onFilterMinMaxChange: function (m, isFiltering) {
-    this.$el.toggle(!isFiltering);
   },
 
   _onDragStart: function () {
