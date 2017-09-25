@@ -8,6 +8,7 @@ var animationTemplate = require('./animation-template.tpl');
 var AnimateValues = require('../animate-values.js');
 var layerColors = require('../../util/layer-colors');
 var analyses = require('../../data/analyses');
+var escapeHTML = require('../../util/escape-html');
 
 /**
  * Default widget content view:
@@ -43,7 +44,7 @@ module.exports = cdb.core.View.extend({
       return 0;
     };
 
-    var nulls = !_.isUndefined(this._dataviewModel.get('nulls')) && formatter.formatNumber(this._dataviewModel.get('nulls')) || '-';
+    var nulls = (!_.isUndefined(this._dataviewModel.get('nulls')) && formatter.formatNumber(this._dataviewModel.get('nulls'))) || '-';
     var isCollapsed = this.model.get('collapsed');
 
     var prefix = this.model.get('prefix');
@@ -71,7 +72,7 @@ module.exports = cdb.core.View.extend({
         suffix: suffix,
         isCollapsed: isCollapsed,
         sourceColor: sourceColor,
-        layerName: layerName
+        layerName: escapeHTML(layerName)
       })
     );
 
@@ -105,6 +106,9 @@ module.exports = cdb.core.View.extend({
     this.model.bind('change:title change:description change:collapsed change:prefix change:suffix', this.render, this);
     this._dataviewModel.bind('change:data', this.render, this);
     this.add_related_model(this._dataviewModel);
+
+    this._dataviewModel.layer.bind('change:layer_name', this.render, this);
+    this.add_related_model(this._dataviewModel.layer);
   },
 
   _initViews: function () {

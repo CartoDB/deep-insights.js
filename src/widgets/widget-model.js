@@ -2,6 +2,9 @@ var _ = require('underscore');
 var cdb = require('cartodb.js');
 var AutoStylerFactory = require('./auto-style/factory');
 
+var TIME_SERIES_TYPE = 'time-series';
+var HISTOGRAM_TYPE = 'histogram';
+
 /**
  * Default widget model
  *
@@ -92,8 +95,8 @@ module.exports = cdb.core.Model.extend({
     var widgetColor = widgetStyle && widgetStyle.definition &&
       widgetStyle.definition.color &&
       widgetStyle.definition.color.fixed;
-    var widgetColorChanged = widgetStyle && widgetStyle.widget_color_changed ||
-      widgetStyle && !widgetStyle.widget_color_changed && widgetColor !== '#9DE0AD';
+    var widgetColorChanged = (widgetStyle && widgetStyle.widget_color_changed) ||
+      (widgetStyle && !widgetStyle.widget_color_changed && widgetColor !== '#9DE0AD');
 
     return widgetColorChanged && widgetColor;
   },
@@ -217,5 +220,13 @@ module.exports = cdb.core.Model.extend({
       }
     }
     return state;
+  },
+
+  forceResize: function () {
+    var type = this.get('type');
+    if (type === TIME_SERIES_TYPE ||
+        type === HISTOGRAM_TYPE) {
+      this.trigger('forceResize');
+    }
   }
 });

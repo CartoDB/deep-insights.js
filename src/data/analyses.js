@@ -32,6 +32,9 @@ var MAP = {
   'data-observatory-measure': {
     title: _t('analyses.data-observatory-measure.short-title')
   },
+  'data-observatory-multiple-measures': {
+    title: _t('analyses.data-observatory-multiple-measures.short-title')
+  },
   'filter-by-node-column': {
     title: _t('analyses.filter-by-node-column.short-title')
   },
@@ -116,8 +119,9 @@ var MAP = {
 };
 
 var getAnalysisByType = function (type) {
-  return MAP[type] || {
-    title: _t('analyses.' + type)
+  var safeType = type === '' ? 'unknown' : type;
+  return MAP[safeType] || {
+    title: _t('analyses.' + safeType)
   };
 };
 

@@ -64,8 +64,7 @@ module.exports = cdb.core.View.extend({
     // TODO in theory there's the possiblity that the callback is called before the view is rendered in the DOM,
     //  which would lead to the view not being visible until an explicit window resize.
     //  a wasAddedToDOM event would've been nice to have
-    this._onWindowResize = _.debounce(this._resizeToParentElement.bind(this), 50);
-    $(window).bind('resize', this._onWindowResize);
+    this.forceResize = _.debounce(this._resizeToParentElement.bind(this), 50);
 
     // using tagName: 'svg' doesn't work,
     // and w/o class="" d3 won't instantiate properly
@@ -91,6 +90,7 @@ module.exports = cdb.core.View.extend({
 
     this.hide(); // will be toggled on width change
 
+    this._tooltipFormatter = formatter.formatNumber; // Tooltips are always numbers
     this._createFormatter();
   },
 
@@ -186,29 +186,39 @@ module.exports = cdb.core.View.extend({
     bFirst.top > bSecond.bottom);
   },
 
-  _updateTriangle: function (className, triangle, xPos) {
-    var y3Factor = className === 'right' && !(this._isTabletViewport() && this._isTimeSeries()) ? -1 : 1;
-    var xLimit = className === 'right' ? this.chartWidth() : 0;
-    var xDiff = Math.abs(xLimit - xPos);
+  _updateTriangle: function (isRight, triangle, start, center, rectWidth) {
+    var ySign = isRight && !(this._isTabletViewport() && this._isTimeSeries()) ? -1 : 1;
 
     var transform = d3.transform(triangle.attr('transform'));
+    var side = Math.min(TRIANGLE_SIDE, rectWidth);
+    var translate = center - (side / 2);
 
-    if (xDiff <= (TRIANGLE_SIDE / 2)) {
-      xDiff = className === 'right' ? TRIANGLE_SIDE - xDiff : xDiff;
-      triangle.attr('d', trianglePath(0, 0, TRIANGLE_SIDE, 0, xDiff, y3Factor * TRIANGLE_HEIGHT, y3Factor));
-      transform.translate[0] = className === 'left' ? 0 : -Math.max(0, Math.abs(this.options.handleWidth - TRIANGLE_SIDE));
-    } else {
-      triangle.attr('d', trianglePath(0, 0, TRIANGLE_SIDE, 0, (TRIANGLE_SIDE / 2), y3Factor * TRIANGLE_HEIGHT, y3Factor));
-      transform.translate[0] = ((this.options.handleWidth / 2) - (TRIANGLE_SIDE / 2));
-    }
+    var offset = isRight
+      ? Math.min((start + rectWidth) - (translate + side), 0)
+      : Math.abs(Math.min(translate - start, 0));
+
+    var p0 = [0, 0];
+    var p1 = [side, 0];
+    var p2 = [side / 2 - offset, TRIANGLE_HEIGHT * ySign];
+
+    triangle.attr('d', trianglePath(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], ySign));
+    transform.translate[0] = center - (side / 2) + offset;
 
     triangle.attr('transform', transform.toString());
   },
 
   _updateAxisTip: function (className) {
+    var leftTip = 'left_axis_tip';
+    var rightTip = 'right_axis_tip';
     var attr = className + '_axis_tip';
+    var isRight = className === 'right';
+    var isLeft = !isRight;
+    var isWeek = this._dataviewModel.get('aggregation') === 'week';
     var model = this.model.get(attr);
     if (model === undefined) { return; }
+
+    var leftValue = this.model.get(leftTip);
+    var rightValue = this.model.get(rightTip);
 
     var textLabel = this.chart.select('.CDB-Chart-axisTipText.CDB-Chart-axisTip-' + className);
     var axisTip = this.chart.select('.CDB-Chart-axisTip.CDB-Chart-axisTip-' + className);
@@ -234,6 +244,9 @@ module.exports = cdb.core.View.extend({
     var textBBox = textLabel.node().getBBox();
     var width = textBBox.width;
     var rectWidth = width + TIP_H_PADDING;
+    var handleWidth = this.options.handleWidth;
+    var barWidth = this.barWidth;
+    var chartWidth = this.chartWidth();
 
     rectLabel.attr('width', rectWidth);
     textLabel.attr('dx', TIP_H_PADDING / 2);
@@ -242,24 +255,51 @@ module.exports = cdb.core.View.extend({
     var parts = d3.transform(handle.attr('transform')).translate;
     var xPos = +parts[0] + (this.options.handleWidth / 2);
 
-    var yPos = className === 'right' && !(this._isMobileViewport() && this._isTimeSeries())
-      ? this.chartHeight() + (TRIANGLE_HEIGHT * TRIANGLE_RIGHT_FACTOR) : -(TRIANGLE_HEIGHT + TIP_RECT_HEIGHT + TOOLTIP_MARGIN);
+    var yPos = isRight && !(this._isMobileViewport() && this._isTimeSeries())
+      ? this.chartHeight() + (TRIANGLE_HEIGHT * TRIANGLE_RIGHT_FACTOR) - 1
+      : -(TRIANGLE_HEIGHT + TIP_RECT_HEIGHT + TOOLTIP_MARGIN);
     yPos = Math.floor(yPos);
 
-    this._updateTriangle(className, triangle, xPos);
+    // Align rect and bar centers
+    var rectCenter = rectWidth / 2;
+    var barCenter = (handleWidth + barWidth) / 2;
+    barCenter -= (isRight ? barWidth : 0); // right tip should center to the previous bin
+    if (!this._isDateTimeSeries() || isWeek) { // In numeric and week histograms, axis should point to the handler
+      barCenter = handleWidth / 2;
+    }
+    var translate = barCenter - rectCenter;
 
-    if ((xPos - width / 2) < 0) {
-      axisTip.attr('transform', 'translate(' + -xPos + ',' + yPos + ' )');
-    } else if ((xPos + width / 2 + 2) >= this.chartWidth()) {
-      var newX = this.chartWidth() - (xPos + rectWidth);
-      newX += this.options.handleWidth;
-      axisTip.attr('transform', 'translate(' + newX + ', ' + yPos + ')');
-    } else {
-      axisTip.attr('transform', 'translate(-' + Math.max(((rectWidth / 2) - (this.options.handleWidth / 2)), 0) + ', ' + yPos + ')');
+    // Check if rect if out of bounds and clip translate if that happens
+    var leftPos = xPos + translate;
+    var rightPos = leftPos + rectWidth;
+    var translatedCenter = translate + rectCenter;
+    var rightExceed = rightPos - (chartWidth + handleWidth);
+
+    // Do we exceed left?
+    if (leftPos < 0) {
+      translate -= leftPos;
     }
 
+    // Do we exceed right?
+    if (rightExceed > 0) {
+      translate -= rightExceed;
+    }
+
+    // Show / hide labels depending on their values
+    var showTip = isLeft
+      ? leftValue <= rightValue
+      : (leftValue <= rightValue && !(leftValue === rightValue && this._isDateTimeSeries()));
+
+    this._showAxisTip(className, showTip);
+
+    // Translate axis tip
+    axisTip.attr('transform', 'translate(' + translate + ', ' + yPos + ')');
+
+    // Update triangle position
+    this._updateTriangle(isRight, triangle, translate, translatedCenter, rectWidth);
+
     if (this.model.get('dragging') && this._isMobileViewport() && this._isTimeSeries()) {
-      this._showAxisTip(className);
+      this._showAxisTip(className, true);
     }
   },
 
@@ -275,22 +315,22 @@ module.exports = cdb.core.View.extend({
   },
 
   _onChangeRange: function () {
-    var lo_index = this.model.get('lo_index');
-    var hi_index = this.model.get('hi_index');
-    if ((lo_index === 0 && hi_index === 0) || (lo_index === null && hi_index === null)) {
+    var loIndex = this.model.get('lo_index');
+    var hiIndex = this.model.get('hi_index');
+    if ((loIndex === 0 && hiIndex === 0) || (loIndex === null && hiIndex === null)) {
       return;
     }
 
-    this.selectRange(lo_index, hi_index);
+    this.selectRange(loIndex, hiIndex);
     this._adjustBrushHandles();
     this._setAxisTipAccordingToBins();
     this._selectBars();
-    this.trigger('on_brush_end', lo_index, hi_index);
+    this.trigger('on_brush_end', loIndex, hiIndex);
   },
 
   _onChangeWidth: function () {
     var width = this.model.get('width');
-    this.$el.width(width);
+    this.canvas.attr('width', width);
     this.chart.attr('width', width);
     if (this.options.showOnWidthChange && width > 0) {
       this.show();
@@ -345,8 +385,8 @@ module.exports = cdb.core.View.extend({
     this.chart.classed('is-dragging', this.model.get('dragging'));
 
     if (!this.model.get('dragging') && this._isMobileViewport() && this._isTimeSeries()) {
-      this._hideAxisTip('right');
-      this._hideAxisTip('left');
+      this._showAxisTip('right', false);
+      this._showAxisTip('left', false);
     }
   },
 
@@ -355,24 +395,21 @@ module.exports = cdb.core.View.extend({
     var rectLabel = this.chart.select('.CDB-Chart-axisTipRect.CDB-Chart-axisTip-' + className);
     var handle = this.chart.select('.CDB-Chart-handle.CDB-Chart-handle-' + className);
     var triangle = handle.select('.CDB-Chart-axisTipTriangle');
+    var duration = 60;
 
     if (textLabel) {
-      textLabel.transition().duration(200).attr('opacity', show);
+      textLabel.transition().duration(duration).attr('opacity', show);
     }
     if (rectLabel) {
-      rectLabel.transition().duration(200).attr('opacity', show);
+      rectLabel.transition().duration(duration).attr('opacity', show);
     }
     if (triangle) {
-      triangle.transition().duration(200).style('opacity', show);
+      triangle.transition().duration(duration).style('opacity', show);
     }
   },
 
-  _hideAxisTip: function (className) {
-    this._toggleAxisTip(className, 0);
-  },
-
-  _showAxisTip: function (className) {
-    this._toggleAxisTip(className, 1);
+  _showAxisTip: function (className, show) {
+    this._toggleAxisTip(className, show ? 1 : 0);
   },
 
   _setAxisTipAccordingToBins: function () {
@@ -577,6 +614,7 @@ module.exports = cdb.core.View.extend({
 
     if (this._originalData) {
       this.listenTo(this._originalData, 'change:data', function () {
+        this.updateYScale();
         this._removeShadowBars();
         this._generateShadowBars();
       });
@@ -586,7 +624,7 @@ module.exports = cdb.core.View.extend({
   _setupDimensions: function () {
     this._setupScales();
     this._setupRanges();
-    this._onWindowResize();
+    this.forceResize();
   },
 
   _getData: function () {
@@ -900,6 +938,8 @@ module.exports = cdb.core.View.extend({
       this._setupFillColor();
       this._refreshBarsColor();
       this._adjustBrushHandles();
+      this._updateAxisTip('left');
+      this._updateAxisTip('right');
     }
   },
 
@@ -937,7 +977,11 @@ module.exports = cdb.core.View.extend({
           hiBarIndex = hiBarIndex + 1;
         }
       }
-      this.model.set({ lo_index: loBarIndex, hi_index: hiBarIndex });
+
+      this.model.set({ lo_index: loBarIndex, hi_index: hiBarIndex }, { silent: true });
+      // Maybe the indexes don't change, and the handlers end up stuck in the middle of the
+      // bucket because the event doesn't trigger, so let's trigger it manually
+      this.model.trigger('change:lo_index');
     }
 
     // click in non animated histogram
@@ -956,7 +1000,8 @@ module.exports = cdb.core.View.extend({
     bars
       .classed('is-highlighted', false)
       .attr('fill', this._getFillColor.bind(this));
-    this.trigger('hover', { value: null });
+
+    this.trigger('hover', { target: null });
   },
 
   _onMouseMove: function () {
@@ -985,7 +1030,7 @@ module.exports = cdb.core.View.extend({
 
       if (!this._isDragging() && freq > 0) {
         var d = this.formatter(freq);
-        hoverProperties = { top: top, left: left, data: d };
+        hoverProperties = { target: bar[0][0], top: top, left: left, data: d };
       } else {
         hoverProperties = null;
       }
@@ -1021,8 +1066,9 @@ module.exports = cdb.core.View.extend({
 
   _moveHandle: function (position, selector) {
     var handle = this.chart.select('.CDB-Chart-handle-' + selector);
-    var x = this.xScale(position) - this.options.handleWidth / 2;
-    var display = (position >= 0 && position <= 100) ? 'inline' : 'none';
+    var fixedPosition = position.toFixed(5);
+    var x = this.xScale(fixedPosition) - this.options.handleWidth / 2;
+    var display = (fixedPosition >= 0 && fixedPosition <= 100) ? 'inline' : 'none';
 
     handle
       .style('display', display)
@@ -1214,7 +1260,7 @@ module.exports = cdb.core.View.extend({
     }
     var dataBin = data[index];
     if (dataBin) {
-      result = fromStart ? dataBin.start : dataBin.next;
+      result = fromStart ? dataBin.start : _.isFinite(dataBin.next) ? dataBin.next : dataBin.end;
     }
 
     return result;
@@ -1407,8 +1453,8 @@ module.exports = cdb.core.View.extend({
       .append('rect')
       .attr('class', 'CDB-Chart-bar')
       .attr('fill', this._getFillColor.bind(this))
-      .attr('transform', function (d, i) {
-        return 'translate(' + (i * self.barWidth) + ', 0 )';
+      .attr('x', function (d, i) {
+        return i * self.barWidth;
       })
       .attr('y', self.chartHeight())
       .attr('height', 0)
@@ -1480,8 +1526,7 @@ module.exports = cdb.core.View.extend({
 
     this._calcBarWidth();
     // Remove spacing if not enough room for the smallest case, or mobile viewport
-    var spacing = (((data.length * 2) - 1) > this.chartWidth() ||
-      this._isMobileViewport() && this._isDateTimeSeries()) ? 0 : 1;
+    var spacing = ((((data.length * 2) - 1) > this.chartWidth() || this._isMobileViewport()) && this._isDateTimeSeries()) ? 0 : 1;
 
     var bars = this.chart.append('g')
       .attr('transform', 'translate(0, 0)')
@@ -1494,11 +1539,14 @@ module.exports = cdb.core.View.extend({
       .append('rect')
       .attr('class', 'CDB-Chart-bar')
       .attr('fill', this._getFillColor.bind(self))
-      .attr('transform', function (d, i) {
-        return 'translate(' + (i * self.barWidth) + ', 0 )';
+      .attr('x', function (d, i) {
+        return i * self.barWidth;
       })
       .attr('y', self.chartHeight())
       .attr('height', 0)
+      .attr('data-tooltip', function (d) {
+        return self._tooltipFormatter(d.freq);
+      })
       .attr('width', Math.max(1, this.barWidth - spacing));
 
     bars
@@ -1572,8 +1620,8 @@ module.exports = cdb.core.View.extend({
       .enter()
       .append('rect')
       .attr('class', 'CDB-Chart-shadowBar')
-      .attr('transform', function (d, i) {
-        return 'translate(' + (i * barWidth) + ', 0 )';
+      .attr('x', function (d, i) {
+        return i * barWidth;
       })
       .attr('y', function (d) {
         if (_.isEmpty(d)) {
@@ -1626,8 +1674,11 @@ module.exports = cdb.core.View.extend({
       case 'quarter':
       case 'month':
         return 80;
-      default:
+      case 'week':
+      case 'day':
         return 120;
+      default:
+        return 140;
     }
   },
 
@@ -1635,7 +1686,7 @@ module.exports = cdb.core.View.extend({
     this.formatter = formatter.formatNumber;
 
     if (this._isDateTimeSeries()) {
-      this.formatter = formatter.timestampFactory(this._dataviewModel.get('aggregation'), this._dataviewModel.get('offset'), this.model.get('local_timezone'));
+      this.formatter = formatter.timestampFactory(this._dataviewModel.get('aggregation'));
       this.options.divisionWidth = this._calculateDivisionWithByAggregation(this._dataviewModel.get('aggregation'));
     }
   },
@@ -1654,10 +1705,5 @@ module.exports = cdb.core.View.extend({
     this.updateYScale();
     this.expand(4);
     this.removeShadowBars();
-  },
-
-  clean: function () {
-    $(window).unbind('resize', this._onWindowResize);
-    cdb.core.View.prototype.clean.call(this);
   }
 });

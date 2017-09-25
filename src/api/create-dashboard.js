@@ -69,12 +69,11 @@ var createDashboard = function (selector, vizJSON, opts, callback) {
   }));
 
   vis.once('load', function (vis) {
-    var widgetsState = dashboardState && dashboardState.widgets || {};
+    var widgetsState = (dashboardState && dashboardState.widgets) || {};
 
     // Create widgets
     var widgetsService = new WidgetsService(widgets, vis.dataviews);
     var widgetModelsMap = {
-      list: widgetsService.createListModel.bind(widgetsService),
       formula: widgetsService.createFormulaModel.bind(widgetsService),
       histogram: widgetsService.createHistogramModel.bind(widgetsService),
       'time-series': widgetsService.createTimeSeriesModel.bind(widgetsService),

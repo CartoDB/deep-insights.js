@@ -4,8 +4,7 @@ var specHelper = require('../../spec-helper');
 var HistogramChartView = require('../../../src/widgets/histogram/chart');
 var TorqueTimeSliderView = require('../../../src/widgets/time-series/torque-time-slider-view');
 var formatter = require('../../../src/formatter');
-var moment = require('moment');
-require('moment-timezone');
+var TorqueLayer = require('cartodb.js/src/geo/map/torque-layer');
 
 describe('widgets/time-series/torque-time-slider-view', function () {
   beforeEach(function () {
@@ -21,7 +20,7 @@ describe('widgets/time-series/torque-time-slider-view', function () {
       start: 0,
       end: 1
     });
-    this.torqueLayerModel = new cdb.geo.TorqueLayer({
+    this.torqueLayerModel = new TorqueLayer({
       isRunning: false,
       step: 0,
       steps: 256,
@@ -160,26 +159,7 @@ describe('widgets/time-series/torque-time-slider-view', function () {
         });
         this.view._updateTimeSliderTip();
 
-        expect(this.view._chartView.$('.CDB-Chart-timeSliderTipText').text()).toBe('06:56 07/30/2017');
-      });
-
-      describe('local timezone', function () {
-        beforeEach(function () {
-          this.timeSeriesModel.set({
-            local_timezone: true
-          });
-          this.torqueLayerModel.set({
-            time: time
-          });
-        });
-
-        it('should update timeslider tip', function () {
-          this.view._updateTimeSliderTip();
-
-          var localTime = moment.tz(time, moment.tz.guess()).format('HH:mm L');
-
-          expect(this.view._chartView.$('.CDB-Chart-timeSliderTipText').text()).toBe(localTime);
-        });
+        expect(this.view._chartView.$('.CDB-Chart-timeSliderTipText').text()).toBe('06:56 - Jul 30th, 2017');
       });
     });
   });

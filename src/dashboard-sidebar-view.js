@@ -5,7 +5,6 @@ var cdb = require('cartodb.js');
 var CategoryContentView = require('./widgets/category/content-view');
 var FormulaContentView = require('./widgets/formula/content-view');
 var HistogramContentView = require('./widgets/histogram/content-view');
-var ListContentView = require('./widgets/list/content-view');
 var WidgetViewFactory = require('./widgets/widget-view-factory');
 var template = require('./dashboard-sidebar.tpl');
 var matchMedia = window.matchMedia;
@@ -19,13 +18,6 @@ module.exports = cdb.core.View.extend({
         type: 'formula',
         createContentView: function (widgetModel) {
           return new FormulaContentView({
-            model: widgetModel
-          });
-        }
-      }, {
-        type: 'list',
-        createContentView: function (widgetModel) {
-          return new ListContentView({
             model: widgetModel
           });
         }
@@ -52,7 +44,7 @@ module.exports = cdb.core.View.extend({
     this._widgets.bind('reset', this.render, this);
     this._widgets.bind('orderChanged', this.render, this);
     this._widgets.bind('change:collapsed', this._onWidgetUpdate, this);
-    this._widgets.bind('add remove reset', this._onUpdate, this); // have to be called _after_ any other add/remove/reset
+    this._widgets.bind('add remove reset', this._onWidgetsChange, this); // have to be called _after_ any other add/remove/reset
     this.add_related_model(this._widgets);
 
     this._resizeHandler = this._onResize.bind(this);
@@ -66,12 +58,13 @@ module.exports = cdb.core.View.extend({
     this.$el.html(template());
     this.$el.toggleClass('CDB-Widget-canvas--withMenu', this.model.get('renderMenu'));
     this._widgets.each(this._maybeRenderWidgetView, this);
-    this.$el.toggle(!_.isEmpty(this._subviews));
+    this._toggleVisiblity();
 
     this._renderScroll();
     this._renderShadows();
     this._bindScroll();
     this._initResize();
+
     return this;
   },
 
@@ -183,8 +176,12 @@ module.exports = cdb.core.View.extend({
     }
   },
 
-  _onUpdate: function () {
-    this.$el.toggle(_.size(this._subviews) > 0);
+  _toggleVisiblity: function () {
+    this.$el.toggle(!_.isEmpty(this._subviews));
+  },
+
+  _onWidgetsChange: function () {
+    this._toggleVisiblity();
   },
 
   clean: function () {

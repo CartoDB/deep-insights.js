@@ -15,8 +15,11 @@ describe('widgets/histogram/content-view', function () {
         id: 'a0'
       }
     });
+    this.dataviewModel.getLayerName = function () {
+      return '< & ><h1>Hello</h1>';
+    };
 
-    this.originalData = this.dataviewModel._originalData;
+    this.originalData = this.dataviewModel.getUnfilteredDataModel();
     this.originalData.set({
       data: [{ bin: 10, max: 0 }, { bin: 3, max: 10 }],
       start: 0,
@@ -275,6 +278,14 @@ describe('widgets/histogram/content-view', function () {
       this.widgetModel.set('show_source', true);
       this.view.render();
       expect(this.view.$('.CDB-Widget-info').length).toBe(1);
+      expect(this.view.$('.u-altTextColor').html()).toBe('&lt; &amp; &gt;&lt;h1&gt;Hello&lt;/h1&gt;');
+    });
+
+    it('should render the widget when the layer name changes', function () {
+      spyOn(this.view, 'render');
+      this.view._initBinds();
+      this.dataviewModel.layer.set('layer_name', 'Hello');
+      expect(this.view.render).toHaveBeenCalled();
     });
 
     it('should collapse properly', function () {
@@ -328,6 +339,17 @@ describe('widgets/histogram/content-view', function () {
       expect(this.view.model.get('filter_enabled')).toBeFalsy();
       expect(this.view.model.get('lo_index')).toBeFalsy();
       expect(this.view.model.get('hi_index')).toBeFalsy();
+    });
+
+    it('should reset widget if number of bins is changed', function () {
+      this.view._unbinds();
+      spyOn(this.view, '_resetWidget');
+      this.view._setupBindings();
+      var prevBins = this.view._dataviewModel.get('bins') || 10;
+
+      this.view._dataviewModel.set('bins', prevBins + 1);
+
+      expect(this.view._resetWidget).toHaveBeenCalled();
     });
   });
 

@@ -1,5 +1,6 @@
 {
   "analyses": {
+    "unknown": "Unknown",
     "source": "Source",
     "connect-with-lines": {
       "short-title": "Connect with lines"
@@ -8,6 +9,9 @@
       "short-title": "Georeference"
     },
     "data-observatory-measure": {
+      "short-title": "Data observatory"
+    },
+    "data-observatory-multiple-measures": {
       "short-title": "Data observatory"
     },
     "merge": {

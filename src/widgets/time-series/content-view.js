@@ -7,6 +7,7 @@ var TimeSeriesHeaderView = require('./time-series-header-view');
 var DropdownView = require('../dropdown/widget-dropdown-view');
 var layerColors = require('../../util/layer-colors');
 var analyses = require('../../data/analyses');
+var escapeHTML = require('../../util/escape-html');
 
 /**
  * Widget content view for a time-series
@@ -40,7 +41,7 @@ module.exports = cdb.core.View.extend({
         sourceType: analyses.title(sourceType),
         showSource: this.model.get('show_source') && letter !== '',
         sourceColor: sourceColor,
-        layerName: layerName
+        layerName: escapeHTML(layerName)
       }));
       this._createHistogramView();
       this._createHeaderView();
@@ -57,6 +58,9 @@ module.exports = cdb.core.View.extend({
 
     this.listenTo(this._dataviewModel, 'change:data', this.render);
     this.listenToOnce(this.model, 'change:hasInitialState', this.render);
+
+    this.listenTo(this._dataviewModel.layer, 'change:layer_name', this.render);
+    this.add_related_model(this._dataviewModel.layer);
   },
 
   _createHistogramView: function () {
@@ -118,9 +122,10 @@ module.exports = cdb.core.View.extend({
 
   _updateRange: function () {
     var bars = this._calculateBars();
-    var lo = bars.loBarIndex;
-    var hi = bars.hiBarIndex;
-    if (lo !== 0 || hi !== this._dataviewModel.get('bins')) {
+    var bins = this._dataviewModel.get('bins');
+    var lo = Math.max(bars.loBarIndex, 0);
+    var hi = Math.min(bars.hiBarIndex, bins);
+    if (lo > 0 || hi < bins) {
       this._histogramView.selectRange(lo, hi);
     }
   },
@@ -139,14 +144,14 @@ module.exports = cdb.core.View.extend({
         loBarIndex = 0;
       } else if (_.isNumber(min) && !_.isNumber(loBarIndex)) {
         startMin = _.findWhere(data, {start: min});
-        loBarIndex = startMin && startMin.bin || 0;
+        loBarIndex = (startMin && startMin.bin) || 0;
       }
 
       if (!_.isNumber(max) && !_.isNumber(hiBarIndex)) {
         hiBarIndex = data.length;
       } else if (_.isNumber(max) && !_.isNumber(hiBarIndex)) {
         startMax = _.findWhere(data, {end: max});
-        hiBarIndex = startMax && startMax.bin + 1 || data.length;
+        hiBarIndex = (startMax && startMax.bin + 1) || data.length;
       }
     } else {
       loBarIndex = 0;

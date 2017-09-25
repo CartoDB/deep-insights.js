@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var $ = require('jquery');
 var cdb = require('cartodb.js');
 var formatter = require('../../formatter');
 var HistogramTitleView = require('./histogram-title-view');
@@ -6,12 +7,12 @@ var HistogramChartView = require('./chart');
 var placeholder = require('./placeholder.tpl');
 var template = require('./content.tpl');
 var DropdownView = require('../dropdown/widget-dropdown-view');
+var TooltipView = require('../widget-tooltip-view');
 var AnimateValues = require('../animate-values.js');
 var animationTemplate = require('./animation-template.tpl');
 var layerColors = require('../../util/layer-colors');
 var analyses = require('../../data/analyses');
-
-var TOOLTIP_TRIANGLE_HEIGHT = 4;
+var escapeHTML = require('../../util/escape-html');
 
 /**
  * Widget content view for a histogram
@@ -46,7 +47,14 @@ module.exports = cdb.core.View.extend({
 
   _initViews: function () {
     this._initTitleView();
+    this._initDropdownView();
+    this._renderMiniChart();
+    this._renderMainChart();
+    this._renderAllValues();
+    this._initTooltipView();
+  },
 
+  _initDropdownView: function () {
     var dropdown = new DropdownView({
       model: this.model,
       target: '.js-actions',
@@ -57,10 +65,20 @@ module.exports = cdb.core.View.extend({
     });
 
     this.addView(dropdown);
+  },
 
-    this._renderMiniChart();
-    this._renderMainChart();
-    this._renderAllValues();
+  _initTooltipView: function () {
+    var tooltip = new TooltipView({
+      context: this.histogramChartView,
+      event: 'hover'
+    });
+
+    $('body').append(tooltip.render().el);
+    this.addView(tooltip);
+  },
+
+  _clearTooltip: function () {
+    this.histogramChartView.trigger('hover', { target: null });
   },
 
   _initTitleView: function () {
@@ -86,6 +104,9 @@ module.exports = cdb.core.View.extend({
     } else {
       this.model.bind('change:hasInitialState', this._setInitialState, this);
     }
+
+    this._dataviewModel.layer.bind('change:layer_name', this.render, this);
+    this.add_related_model(this._dataviewModel.layer);
   },
 
   _setInitialState: function () {
@@ -137,7 +158,7 @@ module.exports = cdb.core.View.extend({
       hi = startMax ? startMax.bin + 1 : data.length;
     }
 
-    if (lo && lo !== 0 || hi && hi !== data.length) {
+    if ((lo && lo !== 0) || (hi && hi !== data.length)) {
       this.filter.setRange(
         data[lo].start,
         data[hi - 1].end
@@ -243,7 +264,7 @@ module.exports = cdb.core.View.extend({
         itemsCount: !isDataEmpty ? data.length : '-',
         isCollapsed: !!this.model.get('collapsed'),
         sourceColor: sourceColor,
-        layerName: layerName
+        layerName: escapeHTML(layerName)
       })
     );
 
@@ -293,7 +314,6 @@ module.exports = cdb.core.View.extend({
     this.addView(this.histogramChartView);
 
     this.histogramChartView.bind('on_brush_end', this._onBrushEnd, this);
-    this.histogramChartView.bind('hover', this._onValueHover, this);
     this.histogramChartView.render().show();
 
     this._updateStats();
@@ -343,27 +363,6 @@ module.exports = cdb.core.View.extend({
     this.model.off('change:max', this._onChangeMax, this);
     this.model.off('change:min', this._onChangeMin, this);
     this.model.off('change:avg', this._onChangeAvg, this);
-  },
-
-  _clearTooltip: function () {
-    this.$('.js-tooltip').stop().hide();
-  },
-
-  _onValueHover: function (info) {
-    var $tooltip = this.$('.js-tooltip');
-
-    if (info && info.data) {
-      var bottom = this.defaults.chartHeight - info.top;
-
-      $tooltip.css({ bottom: bottom, left: info.left });
-      $tooltip.text(info.data);
-      $tooltip.css({
-        left: info.left - $tooltip.width() / 2,
-        bottom: bottom + $tooltip.height() + (TOOLTIP_TRIANGLE_HEIGHT * 1.5) });
-      $tooltip.fadeIn(70);
-    } else {
-      this._clearTooltip();
-    }
   },
 
   _onMiniRangeUpdated: function (loBarIndex, hiBarIndex) {
@@ -425,13 +424,7 @@ module.exports = cdb.core.View.extend({
   },
 
   _onChangeBins: function (mdl, bins) {
-    this._originalData.setBins(bins);
-    this.model.set({
-      zoom_enabled: false,
-      filter_enabled: false,
-      lo_index: null,
-      hi_index: null
-    });
+    this._resetWidget();
   },
 
   _onChangeZoomEnabled: function () {
@@ -517,14 +510,14 @@ module.exports = cdb.core.View.extend({
         loBarIndex = 0;
       } else if (_.isNumber(min) && !_.isNumber(loBarIndex)) {
         startMin = _.findWhere(data, {start: min});
-        loBarIndex = startMin && startMin.bin || 0;
+        loBarIndex = (startMin && startMin.bin) || 0;
       }
 
       if (!_.isNumber(max) && !_.isNumber(hiBarIndex)) {
         hiBarIndex = data.length;
       } else if (_.isNumber(max) && !_.isNumber(hiBarIndex)) {
         startMax = _.findWhere(data, {end: max});
-        hiBarIndex = startMax && startMax.bin + 1 || data.length;
+        hiBarIndex = (startMax && startMax.bin + 1) || data.length;
       }
     } else {
       loBarIndex = 0;
@@ -541,7 +534,7 @@ module.exports = cdb.core.View.extend({
     if (!this._initStateApplied) return;
     var data;
 
-    if (!this._isZoomed() || this._isZoomed() && this._numberOfFilters === 2) {
+    if (!this._isZoomed() || (this._isZoomed() && this._numberOfFilters === 2)) {
       data = this.histogramChartView.model.get('data');
     } else {
       data = this.miniHistogramChartView.model.get('data');
@@ -587,7 +580,7 @@ module.exports = cdb.core.View.extend({
   _calcAvg: function (data, start, end) {
     var selectedData = data.slice(start, end);
 
-    var total = this._calcSum(data, start, end, total);
+    var total = this._calcSum(data, start, end);
 
     if (!total) {
       return 0;

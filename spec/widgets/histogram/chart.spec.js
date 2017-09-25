@@ -15,8 +15,8 @@ function flushAllD3Transitions () {
 }
 
 describe('widgets/histogram/chart', function () {
-  var onWindowResizeReal;
-  var onWindowResizeSpy;
+  var forceResizeReal;
+  var forceResizeSpy;
   var generateHandlesSpy;
   var setupBrushSpy;
   var createFormatterSpy;
@@ -57,10 +57,10 @@ describe('widgets/histogram/chart', function () {
     }.bind(this);
 
     // override default behavior of debounce, to be able to control callback
-    onWindowResizeSpy = jasmine.createSpy('_onWindowResize');
+    forceResizeSpy = jasmine.createSpy('forceResize');
     spyOn(_, 'debounce').and.callFake(function (cb) {
-      onWindowResizeReal = cb;
-      return onWindowResizeSpy;
+      forceResizeReal = cb;
+      return forceResizeSpy;
     });
 
     this.widgetModel = new cdb.core.Model({
@@ -194,7 +194,7 @@ describe('widgets/histogram/chart', function () {
 
   describe('when view is resized', function () {
     beforeEach(function () {
-      onWindowResizeReal.call(this);
+      forceResizeReal.call(this);
       expect(this.view.$el.parent).toHaveBeenCalled();
     });
 
@@ -1206,9 +1206,9 @@ describe('widgets/histogram/chart', function () {
     it('should update triangle', function () {
       var triangle = this.view.$('.CDB-Chart-handle-left .CDB-Chart-axisTipTriangle');
 
-      this.view._updateTriangle('left', triangle, 42);
+      this.view._updateTriangle(false, triangle, 42, 60, 100);
 
-      expect(triangle.attr('transform')).toBe('translate(-3,-11)rotate(0)skewX(0)scale(1,1)');
+      expect(triangle.attr('transform')).toBe('translate(53,-11)rotate(0)skewX(0)scale(1,1)');
     });
 
     describe('time-series, tablet', function () {
@@ -1227,9 +1227,9 @@ describe('widgets/histogram/chart', function () {
       it('should update right axis tip', function () {
         var triangle = this.view.$('.CDB-Chart-handle-right .CDB-Chart-axisTipTriangle');
 
-        this.view._updateTriangle('right', triangle, 42);
+        this.view._updateTriangle(true, triangle, 42, 60, 100);
 
-        expect(triangle.attr('transform')).toBe('translate(-3,59.099998474121094)rotate(0)skewX(0)scale(1,1)');
+        expect(triangle.attr('transform')).toBe('translate(53,59.099998474121094)rotate(0)skewX(0)scale(1,1)');
       });
     });
   });
@@ -1273,7 +1273,7 @@ describe('widgets/histogram/chart', function () {
 
         var axisTip = this.view.$('.CDB-Chart-axisTip.CDB-Chart-axisTip-right');
 
-        expect(axisTip.attr('transform')).toBe('translate(-2, 57)');
+        expect(axisTip.attr('transform')).toBe('translate(-2, 56)');
       });
     });
 
@@ -1292,7 +1292,7 @@ describe('widgets/histogram/chart', function () {
       it('should update axis tip', function () {
         this.view._updateAxisTip('left');
 
-        expect(this.view.$('.CDB-Chart-axisTipText.CDB-Chart-axisTip-left').text()).toBe('09:03 08/03/2017');
+        expect(this.view.$('.CDB-Chart-axisTipText.CDB-Chart-axisTip-left').text()).toBe('09:03 - Aug 3rd, 2017');
       });
     });
 
@@ -1315,17 +1315,6 @@ describe('widgets/histogram/chart', function () {
         var axisTip = this.view.$('.CDB-Chart-axisTip.CDB-Chart-axisTip-right');
 
         expect(axisTip.attr('transform')).toBe('translate(-2, -26)');
-      });
-
-      describe('is dragging', function () {
-        it('should show axis tip', function () {
-          spyOn(this.view, '_showAxisTip');
-
-          this.view.model.set('dragging', true);
-          this.view._updateAxisTip('right');
-
-          expect(this.view._showAxisTip).toHaveBeenCalledWith('right');
-        });
       });
     });
   });
@@ -1355,12 +1344,12 @@ describe('widgets/histogram/chart', function () {
       });
 
       it('should hide axis tips', function () {
-        spyOn(this.view, '_hideAxisTip');
+        spyOn(this.view, '_showAxisTip');
 
         this.view.model.set('dragging', false);
 
-        expect(this.view._hideAxisTip).toHaveBeenCalledWith('right');
-        expect(this.view._hideAxisTip).toHaveBeenCalledWith('left');
+        expect(this.view._showAxisTip).toHaveBeenCalledWith('right', false);
+        expect(this.view._showAxisTip).toHaveBeenCalledWith('left', false);
       });
     });
   });
@@ -1402,25 +1391,23 @@ describe('widgets/histogram/chart', function () {
     });
   });
 
-  describe('._hideAxisTip', function () {
-    it('should hide axis tip', function () {
-      var tip = 'left';
-      spyOn(this.view, '_toggleAxisTip');
-
-      this.view._hideAxisTip(tip);
-
-      expect(this.view._toggleAxisTip).toHaveBeenCalledWith(tip, 0);
-    });
-  });
-
   describe('._showAxisTip', function () {
     it('should show axis tip', function () {
       var tip = 'left';
       spyOn(this.view, '_toggleAxisTip');
 
-      this.view._showAxisTip(tip);
+      this.view._showAxisTip(tip, true);
 
       expect(this.view._toggleAxisTip).toHaveBeenCalledWith(tip, 1);
+    });
+
+    it('should hide axis tip', function () {
+      var tip = 'left';
+      spyOn(this.view, '_toggleAxisTip');
+
+      this.view._showAxisTip(tip, false);
+
+      expect(this.view._toggleAxisTip).toHaveBeenCalledWith(tip, 0);
     });
   });
 
@@ -1582,7 +1569,7 @@ describe('widgets/histogram/chart', function () {
 
         this.view._createFormatter();
 
-        expect(formatter.timestampFactory).toHaveBeenCalledWith('minute', 0, false);
+        expect(formatter.timestampFactory).toHaveBeenCalledWith('minute');
         expect(this.view._calculateDivisionWithByAggregation).toHaveBeenCalled();
         expect(this.view.formatter).not.toBe(formatter.formatNumber);
       });
