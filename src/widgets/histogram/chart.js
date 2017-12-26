@@ -9,7 +9,6 @@ var viewportUtils = require('../../viewport-utils');
 
 var FILTERED_COLOR = '#2E3C43';
 var UNFILTERED_COLOR = 'rgba(0, 0, 0, 0.06)';
-var HOVER_COLOR = '#82BB90';
 var TIP_RECT_HEIGHT = 17;
 var TIP_H_PADDING = 6;
 var TRIANGLE_SIDE = 14;
@@ -1361,24 +1360,47 @@ module.exports = cdb.core.View.extend({
     var self = this;
     var geometryDefinition = obj.definition[Object.keys(obj.definition)[0]]; // Gets first definition by geometry
     var colorsRange = geometryDefinition && geometryDefinition.color && geometryDefinition.color.range;
-    var data = this.model.get('data');
     var interpolatedColors = d3Interpolate.interpolateRgbBasis(colorsRange);
+    var colorsRangeHover = _.map(colorsRange, function (color) {
+      return d3.rgb(color).darker(0.3).toString();
+    });
+    var interpolatedHoverColors = d3Interpolate.interpolateRgbBasis(colorsRangeHover);
+    var data = this.model.get('data');
     var domain = this._calculateDataDomain();
     var domainScale = d3.scale.linear().domain(domain).range([0, 1]);
     var defs = d3.select(this.el).append('defs');
     var stopsNumber = 4; // It is not necessary to create as many stops as colors
 
     this._linearGradients = defs
-      .selectAll('linearGradient')
+      .selectAll('.gradient')
       .data(data)
       .enter()
       .append('linearGradient')
+      .attr('class', 'gradient')
       .attr('id', function (d, i) {
         // This is the scale for each bin, used in each stop within this gradient
         this.__scale__ = d3.scale.linear()
           .range([ self._getMinValueFromBinIndex(i), self._getMaxValueFromBinIndex(i) ])
           .domain([0, 1]);
         return 'bar-' + self.cid + '-' + i;
+      })
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '0%');
+
+    this._linearGradientsHover = defs
+      .selectAll('.gradient-hover')
+      .data(data)
+      .enter()
+      .append('linearGradient')
+      .attr('class', 'gradient-hover')
+      .attr('id', function (d, i) {
+        // This is the scale for each bin, used in each stop within this gradient
+        this.__scale__ = d3.scale.linear()
+          .range([self._getMinValueFromBinIndex(i), self._getMaxValueFromBinIndex(i)])
+          .domain([0, 1]);
+        return 'bar-' + self.cid + '-' + i + '-hover';
       })
       .attr('x1', '0%')
       .attr('y1', '0%')
@@ -1398,6 +1420,21 @@ module.exports = cdb.core.View.extend({
         var localScale = this.parentNode.__scale__;
         var interpolateValue = domainScale(localScale(this.__offset__ / 100));
         return interpolatedColors(interpolateValue);
+      });
+
+    this._linearGradientsHover
+      .selectAll('stop')
+      .data(d3.range(stopsNumber + 1))
+      .enter()
+      .append('stop')
+      .attr('offset', function (d, i) {
+        var offset = this.__offset__ = Math.floor(((i) / stopsNumber) * 100);
+        return (offset + '%');
+      })
+      .attr('stop-color', function () {
+        var localScale = this.parentNode.__scale__;
+        var interpolateValue = domainScale(localScale(this.__offset__ / 100));
+        return interpolatedHoverColors(interpolateValue);
       });
   },
 
@@ -1437,11 +1474,11 @@ module.exports = cdb.core.View.extend({
 
     if (this._widgetModel) {
       if (this._widgetModel.isAutoStyle()) {
-        return currentFillColor;
+        return 'url(#bar-' + this.cid + '-' + i + '-hover)';
       }
     }
 
-    return HOVER_COLOR;
+    return d3.rgb(currentFillColor).darker(0.3).toString();
   },
 
   _updateChart: function () {
